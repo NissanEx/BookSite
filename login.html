@@ -219,9 +219,8 @@
                 padding: 100px 30px 60px 30px; 
                 justify-content: flex-start;
             }
-            /* Menghapus gaya rata tengah di mobile agar tetap di pojok kiri */
             .header-title { 
-                left: 30px; /* Sedikit disesuaikan untuk padding mobile */
+                left: 30px;
                 top: 30px; 
                 transform: none;
                 text-align: left;
@@ -305,17 +304,7 @@
                     </svg>
                     Lanjutkan dengan Google
                 </button>
-                <div id="google-info" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 14px; font-size:12px; color:#92400e; line-height:1.6;">
-                    <b>⚠️ Kenapa belum bisa login Google?</b><br>
-                    Login Google membutuhkan <b>Google OAuth2 Client ID</b> yang didapat dari
-                    <a href="https://console.cloud.google.com" target="_blank" style="color:#b45309;">Google Cloud Console</a>.
-                    Langkah yang perlu dilakukan:<br>
-                    1. Buat project di Google Cloud Console<br>
-                    2. Aktifkan <b>Google Identity API</b><br>
-                    3. Buat <b>OAuth 2.0 Client ID</b><br>
-                    4. Daftarkan domain Vercel-mu sebagai <i>Authorized origin</i><br>
-                    5. Pasang library <code>google-auth-library</code> di backend
-                </div>
+
             </div>
             
             <p style="margin-top: 30px; text-align: center; font-size: 12px; opacity: 0.4;">
@@ -346,22 +335,20 @@ function login() {
     localStorage.setItem("isLogin", "true");
     localStorage.setItem("username", username);
 
-    // Redirect ke halaman tujuan (misal CreateBook) atau home
     const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
     localStorage.removeItem('redirectAfterLogin');
     fadeOutAndRedirect(redirect);
 }
 
 function showRegister() {
-    // Halaman register belum dibuat — arahkan ke home sementara
     fadeOutAndRedirect('home.html');
 }
 
+// ✅ DIREVISI: langsung redirect ke API route Google OAuth
 function loginWithGoogle() {
-    const info = document.getElementById('google-info');
-    if (info) {
-        info.style.display = info.style.display === 'none' ? 'block' : 'none';
-    }
+    const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
+    localStorage.setItem('redirectAfterLogin', redirect);
+    window.location.href = '/api/auth/google';
 }
 
 function fadeOutAndRedirect(url) {
