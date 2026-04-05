@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Your Book - Login</title>
+
+    <!-- FONT LORA -->
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ================== STYLING UTAMA ================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; }
+        body { 
+            background: #ffffff; 
+            width: 100vw; 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            color: #1a1a1a;
+        }
+        
+        /* JUDUL TETAP DI POJOK KIRI ATAS */
+        .header-title { 
+            position: absolute; 
+            top: 40px; 
+            left: 40px; 
+            font-size: 22px; 
+            font-weight: 600; 
+            z-index: 10;
+            letter-spacing: -0.5px;
+            cursor: default;
+        }
+
+        .container { 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 120px; 
+            padding: 40px;
+        }
+
+        .left { 
+            width: auto; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+        
+        .book-img { 
+            width: 400px; 
+            max-width: 100%;
+            filter: grayscale(0.2);
+            animation: float 4s ease-in-out infinite; 
+        }
+        
+        @keyframes float { 
+            0% { transform: translateY(0); } 
+            50% { transform: translateY(-15px); } 
+            100% { transform: translateY(0); } 
+        }
+
+        .right { 
+            width: auto; 
+            display: flex; 
+            justify-content: center; 
+        }
+
+        .form-box { 
+            width: 360px; 
+        }
+
+        .form-box h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .form-box p.subtitle {
+            font-size: 14px;
+            opacity: 0.6;
+            margin-bottom: 30px;
+        }
+
+        .message-box {
+            background: #fdf2f2;
+            color: #9b1c1c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+            text-align: center;
+            border: 1px solid #fbd5d5;
+        }
+
+        label { 
+            display: block; 
+            margin-bottom: 8px; 
+            font-size: 11px; 
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        
+        input { 
+            width: 100%; 
+            padding: 14px; 
+            border-radius: 8px; 
+            border: 1px solid #eee; 
+            background: #f9f9f9;
+            margin-bottom: 20px; 
+            font-size: 15px; 
+            transition: all 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #000;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        .btn-group { display: flex; flex-direction: column; gap: 15px; }
+        
+        .main-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        button { 
+            width: 100%; 
+            padding: 14px 0; 
+            font-size: 13px; 
+            font-weight: 600;
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-daftar { 
+            background: transparent; 
+            border: 1px solid rgba(0,0,0,0.1); 
+            color: #000;
+            width: 120px;
+        }
+        
+        .btn-login { 
+            background: #000; 
+            color: white; 
+            border: none; 
+            flex: 1;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 10px 0;
+            color: #bbb;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+
+        .divider:not(:empty)::before { margin-right: 1.5em; }
+        .divider:not(:empty)::after { margin-left: 1.5em; }
+
+        .btn-google {
+            background: white;
+            border: 1px solid #eee;
+            color: #444;
+            font-size: 14px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .btn-google svg { width: 18px; }
+
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
+        }
+
+        .btn-login:hover { background: #333; }
+        .btn-daftar:hover { background: #f5f5f5; border-color: #000; }
+
+        .fade-in { animation: fade 1s ease forwards; }
+        
+        @keyframes fade { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Responsive Mobile */
+        @media (max-width: 900px) {
+            body { overflow-y: auto; height: auto; min-height: 100vh; }
+            .container { 
+                flex-direction: column; 
+                gap: 20px; 
+                padding: 100px 30px 60px 30px; 
+                justify-content: flex-start;
+            }
+            /* Menghapus gaya rata tengah di mobile agar tetap di pojok kiri */
+            .header-title { 
+                left: 30px; /* Sedikit disesuaikan untuk padding mobile */
+                top: 30px; 
+                transform: none;
+                text-align: left;
+            }
+            .book-img { 
+                width: 180px; 
+                margin-bottom: 10px;
+            }
+            .form-box { 
+                width: 100%; 
+                max-width: 400px; 
+            }
+            .form-box h2 {
+                font-size: 24px;
+                text-align: center;
+            }
+            .form-box p.subtitle {
+                text-align: center;
+                margin-bottom: 25px;
+            }
+            .btn-daftar {
+                width: 100%;
+            }
+            .container::after { content: ''; display: block; height: 40px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header-title fade-in">Open Your Book</div>
+
+<div class="container">
+
+    <!-- KIRI (Ilustrasi) -->
+    <div class="left fade-in">
+        <img src="img/Open_book_for_reading_symbol_vector___Premium_Vector-removebg-preview.png" class="book-img" alt="Buku Terbuka">
+    </div>
+
+    <!-- KANAN (Form) -->
+    <div class="right fade-in">
+        <div class="form-box">
+            <h2>Selamat Datang</h2>
+            <p class="subtitle">Masuk untuk melanjutkan membaca cerita favorit Anda.</p>
+
+            <div id="error-msg" class="message-box"></div>
+
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Nama pengguna Anda">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Kata sandi Anda">
+
+            <div class="btn-group">
+                <div class="main-actions">
+                    <button class="btn-daftar" onclick="showRegister()">Daftar</button>
+                    <button class="btn-login" onclick="login()">Masuk</button>
+                </div>
+
+                <div class="divider">Atau</div>
+
+                <button class="btn-google" onclick="loginWithGoogle()">
+                    <svg viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                    </svg>
+                    Lanjutkan dengan Google
+                </button>
+            </div>
+            
+            <p style="margin-top: 30px; text-align: center; font-size: 12px; opacity: 0.4;">
+                &copy; 2024 Open Your Book. Literasi tanpa batas.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function showMessage(msg) {
+    const box = document.getElementById("error-msg");
+    box.innerText = msg;
+    box.style.display = "block";
+    setTimeout(() => { box.style.display = "none"; }, 4000);
+}
+
+function login() {
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value.trim();
+
+    if (!username || !password) {
+        showMessage("Silakan isi username dan password Anda.");
+        return;
+    }
+
+    localStorage.setItem("isLogin", "true");
+    localStorage.setItem("username", username);
+    fadeOutAndRedirect("/home");
+}
+
+function showRegister() {
+    fadeOutAndRedirect("/register");
+}
+
+function loginWithGoogle() {
+    console.log("Mengarahkan ke Google Auth...");
+}
+
+function fadeOutAndRedirect(url) {
+    document.body.style.transition = "opacity 0.5s ease";
+    document.body.style.opacity = "0";
+    setTimeout(() => {
+        console.log("Navigasi ke: " + url);
+    }, 500);
+}
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+        login();
+    }
+});
+</script>
+
+</body>
+</html>
