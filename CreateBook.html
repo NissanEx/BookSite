@@ -156,21 +156,29 @@
         .cup-header button:hover { background: #f3f4f6; }
         .cup-body { display: flex; flex: 1; overflow: hidden; }
 
-        /* Kiri: upload + crop */
-        .cup-left { width: 340px; min-width: 340px; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 20px; gap: 14px; }
-        .cup-drop { border: 2px dashed #444; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; color: #6b7280; font-size: 12px; width: 100%; transition: all 0.2s; position: relative; }
+        /* Kiri: upload + crop — diperkecil */
+        .cup-left { width: 220px; min-width: 220px; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 18px 14px; gap: 10px; overflow-y: auto; }
+        .cup-drop { border: 2px dashed #444; border-radius: 8px; padding: 14px 10px; text-align: center; cursor: pointer; color: #6b7280; font-size: 11px; width: 100%; transition: all 0.2s; position: relative; }
         .cup-drop:hover { border-color: #888; color: #aaa; }
         .cup-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-        .cup-drop svg { width: 28px; height: 28px; margin: 0 auto 6px; display: block; opacity: 0.35; }
+        .cup-drop svg { width: 22px; height: 22px; margin: 0 auto 4px; display: block; opacity: 0.35; }
 
-        /* Crop canvas wrapper */
-        .crop-wrap { position: relative; width: 200px; height: 300px; overflow: hidden; border-radius: 4px 10px 10px 4px; cursor: crosshair; display: none; box-shadow: -4px 0 12px rgba(0,0,0,0.5), 5px 5px 20px rgba(0,0,0,0.5); }
-        .crop-wrap canvas { display: block; }
+        /* Crop canvas wrapper — diperkecil proporsional */
+        .crop-wrap { position: relative; width: 160px; height: 240px; overflow: hidden; border-radius: 3px 8px 8px 3px; cursor: crosshair; display: none; box-shadow: -3px 0 10px rgba(0,0,0,0.5), 4px 4px 16px rgba(0,0,0,0.5); flex-shrink: 0; }
+        .crop-wrap canvas { display: block; width: 160px !important; height: 240px !important; }
         .crop-selector { position: absolute; border: 2px solid #fff; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); pointer-events: none; }
-        .crop-hint { color: #6b7280; font-size: 10px; letter-spacing: 0.5px; text-align: center; }
+        .crop-hint { color: #5b6370; font-size: 9px; letter-spacing: 0.5px; text-align: center; line-height: 1.4; }
+
+        /* Tombol galeri & crop ulang */
+        .cup-gallery-btn { width: 100%; padding: 7px; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1.5px solid #444; background: #1e1e1e; color: #aaa; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .cup-gallery-btn:hover { border-color: #888; color: #fff; }
+
+        /* Preview mini buku setelah crop */
+        .cup-preview-row { display: flex; align-items: center; gap: 8px; width: 100%; }
+        .cup-preview-label { color: #5b6370; font-size: 9px; letter-spacing: 0.5px; text-transform: uppercase; }
 
         /* Kanan: metadata */
-        .cup-right { flex: 1; padding: 22px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+        .cup-right { flex: 1; padding: 20px 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
         .cup-field label { display: block; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #6b7280; margin-bottom: 6px; }
         .cup-field input, .cup-field textarea, .cup-field select {
             width: 100%; padding: 9px 12px; border: 1.5px solid #e5e7eb; border-radius: 8px;
@@ -179,7 +187,7 @@
         }
         .cup-field input:focus, .cup-field textarea:focus { border-color: #374151; }
         .cup-field textarea { min-height: 80px; }
-        .cup-preview-book { width: 60px; height: 90px; border-radius: 2px 6px 6px 2px; overflow: hidden; box-shadow: -3px 0 8px rgba(0,0,0,0.2), 4px 4px 14px rgba(0,0,0,0.18); display: none; }
+        .cup-preview-book { width: 50px; height: 75px; border-radius: 2px 5px 5px 2px; overflow: hidden; box-shadow: -2px 0 6px rgba(0,0,0,0.2), 3px 3px 10px rgba(0,0,0,0.18); display: none; flex-shrink: 0; }
         .cup-preview-book img { width: 100%; height: 100%; object-fit: cover; }
 
         .cup-footer { padding: 14px 22px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 10px; }
@@ -356,16 +364,29 @@
             <div class="cup-left">
                 <div class="cup-drop" id="cupDrop" onclick="document.getElementById('coverImgInput').click()">
                     <i data-lucide="image-plus"></i>
-                    <div>Klik untuk pilih gambar sampul</div>
+                    <div>Pilih gambar sampul</div>
                     <input type="file" id="coverImgInput" accept="image/*" onchange="onCoverImageSelected(this)">
                 </div>
+                <!-- Tombol ganti gambar (muncul setelah pilih) -->
+                <button class="cup-gallery-btn" id="cupGalleryBtn" style="display:none;" onclick="document.getElementById('coverImgInput').click()">
+                    <i data-lucide="image" style="width:13px;height:13px;"></i> Ganti Gambar
+                </button>
                 <div class="crop-wrap" id="cropWrap">
                     <canvas id="cropCanvas"></canvas>
                     <div class="crop-selector" id="cropSelector"></div>
                 </div>
-                <div class="crop-hint" id="cropHint" style="display:none;">Seret untuk memilih area crop · Rasio 2:3</div>
-                <div class="cup-preview-book" id="cupPreviewBook">
-                    <img id="cupPreviewImg" src="" alt="Preview">
+                <div class="crop-hint" id="cropHint" style="display:none;">Seret untuk crop · Rasio 2:3</div>
+                <!-- Preview mini + tombol reset crop -->
+                <div class="cup-preview-row" id="cupPreviewRow" style="display:none;">
+                    <div class="cup-preview-book" id="cupPreviewBook" style="display:flex;">
+                        <img id="cupPreviewImg" src="" alt="Preview">
+                    </div>
+                    <div>
+                        <div class="cup-preview-label">Hasil crop</div>
+                        <button class="cup-gallery-btn" style="margin-top:5px; font-size:10px; padding:5px 8px;" onclick="resetCrop()">
+                            <i data-lucide="crop" style="width:11px;height:11px;"></i> Reset
+                        </button>
+                    </div>
                 </div>
             </div>
             <!-- KANAN: metadata -->
@@ -747,20 +768,22 @@ function onCoverImageSelected(input){
     if(!input.files||!input.files[0]) return;
     const r = new FileReader();
     r.onload = e => {
-        const src = e.target.result;
         cropImg = new Image();
         cropImg.onload = () => initCrop(cropImg);
-        cropImg.src = src;
+        cropImg.src = e.target.result;
         document.getElementById('cupDrop').style.display = 'none';
-        document.getElementById('cupPreviewBook').style.display = 'none';
+        document.getElementById('cupGalleryBtn').style.display = 'flex';
+        document.getElementById('cupPreviewRow').style.display = 'none';
     };
     r.readAsDataURL(input.files[0]);
 }
 
 function initCrop(img){
-    const CANVAS_W = 200, CANVAS_H = 300;
+    const CANVAS_W = 160, CANVAS_H = 240;
     const canvas = document.getElementById('cropCanvas');
     canvas.width = CANVAS_W; canvas.height = CANVAS_H;
+    canvas.style.width = CANVAS_W + 'px';
+    canvas.style.height = CANVAS_H + 'px';
 
     // Scale image to fit canvas
     const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
@@ -768,7 +791,6 @@ function initCrop(img){
     const ox = (CANVAS_W - dw) / 2, oy = (CANVAS_H - dh) / 2;
     cropState.imgScale = scale; cropState.imgOffX = ox; cropState.imgOffY = oy;
 
-    // Default crop = full 2:3 canvas
     cropState.x = 0; cropState.y = 0; cropState.w = CANVAS_W; cropState.h = CANVAS_H;
 
     drawCropCanvas();
@@ -778,21 +800,23 @@ function initCrop(img){
     wrap.style.display = 'block';
     document.getElementById('cropHint').style.display = 'block';
 
-    // Events
     canvas.onmousedown = e => {
         const r = canvas.getBoundingClientRect();
+        const scaleX = CANVAS_W / r.width;
+        const scaleY = CANVAS_H / r.height;
         cropState.dragging = true;
-        cropState.startX = e.clientX - r.left;
-        cropState.startY = e.clientY - r.top;
+        cropState.startX = (e.clientX - r.left) * scaleX;
+        cropState.startY = (e.clientY - r.top) * scaleY;
         cropState.x = cropState.startX; cropState.y = cropState.startY;
         cropState.w = 0; cropState.h = 0;
     };
     canvas.onmousemove = e => {
         if(!cropState.dragging) return;
         const r = canvas.getBoundingClientRect();
-        let cx = e.clientX - r.left, cy = e.clientY - r.top;
+        const scaleX = CANVAS_W / r.width;
+        const scaleY = CANVAS_H / r.height;
+        let cx = (e.clientX - r.left) * scaleX;
         let w = cx - cropState.startX;
-        // Lock to 2:3 ratio
         let h = Math.abs(w) * (3/2) * (w < 0 ? -1 : 1);
         cropState.w = w; cropState.h = h;
         updateCropSelector();
@@ -824,12 +848,11 @@ function updateCropSelector(){
 }
 
 function applyCropPreview(){
-    const CANVAS_W=200, CANVAS_H=300;
+    const CANVAS_W=160, CANVAS_H=240;
     let {x,y,w,h} = cropState;
     if(w<0){x+=w;w=-w;} if(h<0){y+=h;h=-h;}
     if(w<1||h<1){x=0;y=0;w=CANVAS_W;h=CANVAS_H;}
 
-    // Map canvas coords back to image coords
     const scale = cropState.imgScale;
     const ox = cropState.imgOffX, oy = cropState.imgOffY;
     const sx = (x - ox) / scale, sy = (y - oy) / scale;
@@ -841,11 +864,16 @@ function applyCropPreview(){
     ctx.drawImage(cropImg, sx, sy, sw, sh, 0, 0, 360, 540);
     pendingCoverDataUrl = out.toDataURL('image/jpeg', 0.92);
 
-    // Show preview book
-    const pb = document.getElementById('cupPreviewBook');
     document.getElementById('cupPreviewImg').src = pendingCoverDataUrl;
-    pb.style.display = 'block';
+    document.getElementById('cupPreviewRow').style.display = 'flex';
     document.getElementById('cupPublishBtn').disabled = false;
+}
+
+function resetCrop(){
+    const CANVAS_W=160, CANVAS_H=240;
+    cropState.x=0; cropState.y=0; cropState.w=CANVAS_W; cropState.h=CANVAS_H;
+    updateCropSelector();
+    applyCropPreview();
 }
 
 function closeCoverUploadModal(){
