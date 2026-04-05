@@ -1,76 +1,39 @@
-/* ===============================
-   API CONFIG
-   =============================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycby_buTOOVUGQT2vYjD6UbKEtojQi5iZR14vMhNTd1y9z-1DprifpXCGjYj47IbjDmY/exec';
 
-// GANTI URL INI SAAT DEPLOY
-const API_BASE_URL = "http://localhost:3000/api";
-
-/* ===============================
-   STORY API
-   =============================== */
-
-/**
- * Ambil semua cerita global
- */
-export async function getStories() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stories`);
-    if (!response.ok) throw new Error("Gagal mengambil cerita");
-    return await response.json();
-  } catch (error) {
-    console.error("ERROR getStories:", error);
-    return [];
-  }
+async function apiGet(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL}?${query}`);
+  return res.json();
 }
 
-/**
- * Ambil satu cerita berdasarkan ID
- */
-export async function getStoryById(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stories/${id}`);
-    if (!response.ok) throw new Error("Cerita tidak ditemukan");
-    return await response.json();
-  } catch (error) {
-    console.error("ERROR getStoryById:", error);
-    return null;
-  }
+async function apiPost(data) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(data)
+  });
+  return res.json();
 }
 
-/**
- * Tambah cerita baru (GLOBAL)
- */
-export async function addStory(storyData) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stories`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(storyData)
-    });
-
-    if (!response.ok) throw new Error("Gagal menambahkan cerita");
-    return await response.json();
-  } catch (error) {
-    console.error("ERROR addStory:", error);
-    return null;
-  }
+async function getApprovedStories() {
+  return apiGet({ action: 'getApproved' });
 }
 
-/**
- * Hapus cerita (opsional, butuh auth nanti)
- */
-export async function deleteStory(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/stories/${id}`, {
-      method: "DELETE"
-    });
+async function getUserStories(username) {
+  return apiGet({ action: 'getByUser', username });
+}
 
-    if (!response.ok) throw new Error("Gagal menghapus cerita");
-    return true;
-  } catch (error) {
-    console.error("ERROR deleteStory:", error);
-    return false;
-  }
+async function getAllStories() {
+  return apiGet({ action: 'getAll' });
+}
+
+async function submitStory(storyData) {
+  return apiPost({ action: 'addStory', ...storyData });
+}
+
+async function updateStatus(id, status) {
+  return apiPost({ action: 'updateStatus', id, status });
+}
+
+async function editStory(id, updates) {
+  return apiPost({ action: 'updateStory', id, ...updates });
 }
