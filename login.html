@@ -159,7 +159,9 @@
             background: #000; 
             color: white; 
             border: none; 
-            flex: 1;
+            flex: 0 0 56px;
+            width: 56px;
+            border-radius: 8px;
         }
 
         .divider {
@@ -246,6 +248,14 @@
             .container::after { content: ''; display: block; height: 40px; }
         }
     </style>
+    <!-- Jika sudah login, langsung ke home -->
+    <script>
+        (function() {
+            if (localStorage.getItem('isLogin') === 'true') {
+                window.location.replace('home.html');
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -276,13 +286,18 @@
             <div class="btn-group">
                 <div class="main-actions">
                     <button class="btn-daftar" onclick="showRegister()">Daftar</button>
-                    <button class="btn-login" onclick="login()">Masuk</button>
+                    <button class="btn-login" onclick="login()" title="Kirim / Masuk">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="divider">Atau</div>
 
                 <button class="btn-google" onclick="loginWithGoogle()">
-                    <svg viewBox="0 0 48 48">
+                    <svg viewBox="0 0 48 48" style="width:18px;">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
                         <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
                         <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path>
@@ -290,6 +305,17 @@
                     </svg>
                     Lanjutkan dengan Google
                 </button>
+                <div id="google-info" style="display:none; background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:12px 14px; font-size:12px; color:#92400e; line-height:1.6;">
+                    <b>⚠️ Kenapa belum bisa login Google?</b><br>
+                    Login Google membutuhkan <b>Google OAuth2 Client ID</b> yang didapat dari
+                    <a href="https://console.cloud.google.com" target="_blank" style="color:#b45309;">Google Cloud Console</a>.
+                    Langkah yang perlu dilakukan:<br>
+                    1. Buat project di Google Cloud Console<br>
+                    2. Aktifkan <b>Google Identity API</b><br>
+                    3. Buat <b>OAuth 2.0 Client ID</b><br>
+                    4. Daftarkan domain Vercel-mu sebagai <i>Authorized origin</i><br>
+                    5. Pasang library <code>google-auth-library</code> di backend
+                </div>
             </div>
             
             <p style="margin-top: 30px; text-align: center; font-size: 12px; opacity: 0.4;">
@@ -319,22 +345,30 @@ function login() {
 
     localStorage.setItem("isLogin", "true");
     localStorage.setItem("username", username);
-    fadeOutAndRedirect("/home");
+
+    // Redirect ke halaman tujuan (misal CreateBook) atau home
+    const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
+    localStorage.removeItem('redirectAfterLogin');
+    fadeOutAndRedirect(redirect);
 }
 
 function showRegister() {
-    fadeOutAndRedirect("/register");
+    // Halaman register belum dibuat — arahkan ke home sementara
+    fadeOutAndRedirect('home.html');
 }
 
 function loginWithGoogle() {
-    console.log("Mengarahkan ke Google Auth...");
+    const info = document.getElementById('google-info');
+    if (info) {
+        info.style.display = info.style.display === 'none' ? 'block' : 'none';
+    }
 }
 
 function fadeOutAndRedirect(url) {
     document.body.style.transition = "opacity 0.5s ease";
     document.body.style.opacity = "0";
     setTimeout(() => {
-        console.log("Navigasi ke: " + url);
+        window.location.href = url;
     }, 500);
 }
 
