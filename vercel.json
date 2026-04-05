@@ -32,6 +32,7 @@
     { "src": "/login",             "dest": "/login.html" },
     { "src": "/home",              "dest": "/home.html" },
     { "src": "/create",            "dest": "/CreateBook.html" },
+    { "src": "/(.*\\.html)",       "dest": "/$1" },
     { "src": "/(.*)",              "dest": "/$1" }
   ]
 }
