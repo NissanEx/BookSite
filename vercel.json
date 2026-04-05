@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/", "dest": "/home.html" },
+    { "src": "/login", "dest": "/login.html" },
+    { "src": "/create", "dest": "/CreateBook.html" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
+}
