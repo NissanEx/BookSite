@@ -270,13 +270,13 @@
             <div class="nav-item active" id="nav-popular" onclick="loadCategory('popular')">Terpopuler</div>
             <div class="nav-item" id="nav-most-read" onclick="loadCategory('most-read')">Banyak Dibaca</div>
             <div class="nav-item" id="nav-recent" onclick="loadCategory('recent')">Baru Diperbarui</div>
-            <a href="CreateBook.html" class="create-btn">+ Buat Cerita</a>
+            <button class="create-btn" onclick="goCreate()">+ Buat Cerita</button>
         </nav>
         <div class="profile-section" onclick="viewProfile()">
-            <div class="avatar">U</div>
+            <div class="avatar" id="sidebarAvatar">?</div>
             <div>
-                <p style="font-size: 14px; font-weight: 600;">Username</p>
-                <p style="font-size: 11px; opacity: 0.5;">Lihat Profil Saya <i class="fa-solid fa-chevron-right" style="font-size: 8px; margin-left: 5px;"></i></p>
+                <p style="font-size: 14px; font-weight: 600;" id="sidebarName">Tamu</p>
+                <p style="font-size: 11px; opacity: 0.5;" id="sidebarSub">Login untuk mulai menulis <i class="fa-solid fa-chevron-right" style="font-size: 8px; margin-left: 5px;"></i></p>
             </div>
         </div>
     </div>
@@ -643,18 +643,25 @@
         document.getElementById('readProgress').style.width = '0%';
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
+        if (!isLoggedIn()) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const currentUser = getUsername();
         document.getElementById('dynamic-content').innerHTML = `
             <div style="animation: fadeIn 0.5s ease; max-width: 800px; margin: 0 auto; padding-top: 40px;">
                 <div style="display:flex; align-items:center; gap:30px; margin-bottom: 50px;">
-                    <div style="width:120px; height:120px; border-radius:50%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:600;">U</div>
+                    <div style="width:120px; height:120px; border-radius:50%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:600;">${currentUser[0].toUpperCase()}</div>
                     <div>
-                        <h1 style="font-size: 32px; margin-bottom: 5px;">Username</h1>
+                        <h1 style="font-size: 32px; margin-bottom: 5px;">${currentUser}</h1>
                         <p style="opacity: 0.6; margin-bottom: 15px;">Penulis & Pembaca di Open Your Book</p>
-                        <div style="display:flex; gap:20px;">
+                        <div style="display:flex; gap:20px; margin-bottom:15px;">
                             <div style="text-align:center;"><p style="font-weight:600;">${userStories.length}</p><p style="font-size:12px; opacity:0.5;">Cerita Saya</p></div>
                             <div style="text-align:center;"><p style="font-weight:600;">12</p><p style="font-size:12px; opacity:0.5;">Mengikuti</p></div>
                             <div style="text-align:center;"><p style="font-weight:600;">45</p><p style="font-size:12px; opacity:0.5;">Pengikut</p></div>
                         </div>
+                        <button onclick="logout()" style="padding:8px 20px;background:transparent;border:1px solid rgba(0,0,0,0.15);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:inherit;transition:0.2s;" onmouseover="this.style.background='#fee2e2';this.style.borderColor='#ef4444';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(0,0,0,0.15)';this.style.color='inherit'">⏻ Logout</button>
                     </div>
                 </div>
                 <h3 style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 25px;">Koleksi Pribadi</h3>
@@ -698,7 +705,39 @@
         });
     }
 
-    window.onload = () => loadCategory('popular');
+    // ===== AUTH =====
+    function isLoggedIn() { return localStorage.getItem('isLogin') === 'true'; }
+    function getUsername() { return localStorage.getItem('username') || 'Tamu'; }
+
+    function goCreate() {
+        if (!isLoggedIn()) {
+            localStorage.setItem('redirectAfterLogin', 'CreateBook.html');
+            window.location.href = 'login.html';
+            return;
+        }
+        window.location.href = 'CreateBook.html';
+    }
+
+    function logout() {
+        localStorage.removeItem('isLogin');
+        localStorage.removeItem('username');
+        window.location.href = 'login.html';
+    }
+
+    function updateSidebar() {
+        const loggedIn = isLoggedIn();
+        const username = getUsername();
+        const avatarEl = document.getElementById('sidebarAvatar');
+        const nameEl   = document.getElementById('sidebarName');
+        const subEl    = document.getElementById('sidebarSub');
+        if (avatarEl) avatarEl.textContent = loggedIn ? username[0].toUpperCase() : '?';
+        if (nameEl)   nameEl.textContent   = loggedIn ? username : 'Tamu';
+        if (subEl)    subEl.innerHTML      = loggedIn
+            ? 'Lihat Profil Saya <i class="fa-solid fa-chevron-right" style="font-size:8px;margin-left:5px;"></i>'
+            : 'Login untuk mulai menulis <i class="fa-solid fa-chevron-right" style="font-size:8px;margin-left:5px;"></i>';
+    }
+
+    window.onload = () => { updateSidebar(); loadCategory('popular'); };
 </script>
 </body>
 </html>

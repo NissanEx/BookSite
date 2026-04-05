@@ -188,6 +188,15 @@
         .cup-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .cup-btn:not(:disabled):hover { opacity: 0.85; }
     </style>
+    <!-- AUTH GUARD: redirect ke login jika belum login -->
+    <script>
+        (function() {
+            if (localStorage.getItem('isLogin') !== 'true') {
+                localStorage.setItem('redirectAfterLogin', 'CreateBook.html');
+                window.location.replace('login.html');
+            }
+        })();
+    </script>
 </head>
 <body>
 
