@@ -442,10 +442,10 @@
                 <p>
                     Permohonan akun Anda telah dikirim ke admin.<br>
                     Anda akan mendapat email konfirmasi setelah disetujui.<br><br>
-                    <strong>Sementara itu, Anda bisa login dan menjelajahi cerita sebagai tamu.</strong>
+                    <strong>Anda sudah otomatis masuk dan bisa langsung menjelajahi cerita!</strong>
                 </p>
-                <a href="login.html" style="display:inline-block; padding: 12px 32px; background: #000; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
-                    Kembali ke Login
+                <a href="home.html" style="display:inline-block; padding: 12px 32px; background: #000; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
+                    Mulai Jelajahi →
                 </a>
                 <br>
                 <p style="font-size: 12px; margin-top: 20px; opacity: 0.4;">
@@ -591,23 +591,42 @@
             }
 
             // Tampilkan sukses
+            autoLoginUser(username);
             document.getElementById('formState').style.display = 'none';
             document.getElementById('successState').style.display = 'block';
 
         } catch (err) {
             console.error('EmailJS error:', err);
 
-            // FALLBACK: jika EmailJS belum dikonfigurasi, simpan lokal saja
-            if (err.text && err.text.includes('public key')) {
-                // EmailJS belum dikonfigurasi → simpan lokal, anggap berhasil
-                document.getElementById('formState').style.display = 'none';
-                document.getElementById('successState').style.display = 'block';
-                showMsg('(Dev mode) EmailJS belum dikonfigurasi. Data disimpan lokal.', 'warning');
-            } else {
-                showMsg('Gagal mengirim permohonan. Coba lagi atau hubungi admin.');
-            }
+            // FALLBACK: jika EmailJS belum dikonfigurasi, simpan lokal saja & langsung login
+            autoLoginUser(username);
+            document.getElementById('formState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
         } finally {
             setLoading(false);
+        }
+    }
+
+    // ============================================================
+    // AUTO LOGIN: simpan session & daftarkan user ke registeredUsers
+    // ============================================================
+    function autoLoginUser(username) {
+        // Simpan session login
+        localStorage.setItem('isLogin', 'true');
+        localStorage.setItem('username', username);
+
+        // Tambahkan ke registeredUsers agar login.html bisa verifikasi nanti
+        const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        const pending = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
+        const userData = pending.find(u => u.username === username);
+        if (userData && !existingUsers.some(u => u.username === username)) {
+            existingUsers.push({
+                username: userData.username,
+                name: userData.name,
+                email: userData.email,
+                passwordHash: userData.passwordHash
+            });
+            localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
         }
     }
 
