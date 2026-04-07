@@ -69,13 +69,13 @@
             display: none;
             position: fixed; inset: 0; z-index: 9000;
             background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            animation: overlayIn 0.3s ease;
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            animation: overlayIn 0.15s ease;
         }
         @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes overlayOut { from { opacity: 1; } to { opacity: 0; } }
-        #paperOverlay.closing { animation: overlayOut 0.25s ease forwards; }
+        #paperOverlay.closing { animation: overlayOut 0.12s ease forwards; }
 
         #paperOverlay .fs-paper-wrap {
             position: absolute; inset: 32px;
@@ -84,10 +84,10 @@
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 30px 80px rgba(0,0,0,0.35);
-            animation: paperExpand 0.32s cubic-bezier(0.34,1.26,0.64,1);
+            animation: paperExpand 0.18s cubic-bezier(0.25,0.8,0.25,1);
         }
         @keyframes paperExpand {
-            from { transform: scale(0.88); opacity: 0; }
+            from { transform: scale(0.96); opacity: 0; }
             to   { transform: scale(1);    opacity: 1; }
         }
         body.dark-mode  #paperOverlay .fs-paper-wrap { background: #1e1e1e; }
@@ -427,7 +427,7 @@
             document.getElementById('fsProgress').style.width = '0%';
             document.body.style.overflow = '';
             document.removeEventListener('keydown', escClose);
-        }, 240);
+        }, 120);
     }
 
     function handleOverlayClick(e) {
@@ -465,7 +465,9 @@
         if (navEl) navEl.classList.add('active');
 
         const content = document.getElementById('dynamic-content');
-        const displayStories = shuffleArray(getAllStories());
+        // Hanya tampilkan cerita yang sudah published (bukan pending/rejected)
+        const allPublished = getAllStories().filter(s => !s.status || s.status === 'published');
+        const displayStories = shuffleArray(allPublished);
         const titleName = cat === 'popular' ? 'Terpopuler' : cat === 'most-read' ? 'Banyak Dibaca' : 'Baru Diperbarui';
 
         content.innerHTML = `
@@ -473,7 +475,8 @@
                 <h2>${titleName}</h2>
                 <p style="font-size: 14px; opacity: 0.5; margin-bottom: 20px;">Rekomendasi yang disusun ulang khusus untuk Anda.</p>
                 <div class="grid-list">
-                    ${displayStories.map(s => `
+                    ${displayStories.length === 0 ? '<p style="opacity:0.4;text-align:center;padding:40px;">Belum ada cerita yang diterbitkan.</p>' :
+                    displayStories.map(s => `
                         <div class="card" onclick="loadStory('${s.id}')">
                             <div class="icon-box">
                                 ${s.cover
@@ -649,38 +652,112 @@
         }
 
         const currentUser = getUsername();
+        // Filter cerita milik user ini
+        const myStories = userStories.filter(s => s.authorUsername === currentUser || s.author === currentUser);
+        const pendingStories   = myStories.filter(s => s.status === 'pending');
+        const publishedStories = myStories.filter(s => !s.status || s.status === 'published');
+        const rejectedStories  = myStories.filter(s => s.status === 'rejected');
+
+        function statusBadge(s) {
+            if (s.status === 'pending')   return '<span style="display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#fffbeb;color:#d97706;border:1px solid #fde68a;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">⏳ Menunggu</span>';
+            if (s.status === 'rejected')  return `<span title="${s.rejectReason||''}" style="display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#fdf2f2;color:#dc2626;border:1px solid #fecaca;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">✕ Ditolak</span>`;
+            return '<span style="display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;">✓ Terbit</span>';
+        }
+
+        function storyCard(s, showEdit = false) {
+            return `
+                <div class="card" style="position:relative;" onclick="${(!s.status || s.status === 'published') ? `loadStory('${s.id}')` : 'void(0)'}">
+                    <div class="icon-box" style="${s.status === 'pending' || s.status === 'rejected' ? 'opacity:0.6;' : ''}">
+                        ${s.cover
+                            ? `<img src="${s.cover}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+                            : `<i class="fa-solid ${s.icon}"></i>`}
+                    </div>
+                    <h3>${s.title}</h3>
+                    <p style="font-size:12px;opacity:0.5;">${s.author}</p>
+                    ${statusBadge(s)}
+                    ${showEdit ? `<div style="display:flex;gap:8px;margin-top:10px;" onclick="event.stopPropagation()">
+                        <button onclick="editStory('${s.id}')" style="flex:1;padding:7px 0;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1.5px solid #d1d5db;background:white;transition:all 0.2s;color:#374151;" onmouseover="this.style.borderColor='#000'" onmouseout="this.style.borderColor='#d1d5db'">✏ Edit</button>
+                        <button onclick="deleteStory('${s.id}')" style="flex:1;padding:7px 0;font-size:11px;font-weight:600;border-radius:6px;cursor:pointer;border:1.5px solid #fecaca;background:white;transition:all 0.2s;color:#ef4444;" onmouseover="this.style.background='#ef4444';this.style.color='white'" onmouseout="this.style.background='white';this.style.color='#ef4444'">🗑 Hapus</button>
+                    </div>` : ''}
+                </div>`;
+        }
+
         document.getElementById('dynamic-content').innerHTML = `
             <div style="animation: fadeIn 0.5s ease; max-width: 800px; margin: 0 auto; padding-top: 40px;">
+                <!-- PROFIL HEADER -->
                 <div style="display:flex; align-items:center; gap:30px; margin-bottom: 50px;">
                     <div style="width:120px; height:120px; border-radius:50%; background:#000; color:#fff; display:flex; align-items:center; justify-content:center; font-size:40px; font-weight:600;">${currentUser[0].toUpperCase()}</div>
                     <div>
                         <h1 style="font-size: 32px; margin-bottom: 5px;">${currentUser}</h1>
                         <p style="opacity: 0.6; margin-bottom: 15px;">Penulis & Pembaca di Open Your Book</p>
                         <div style="display:flex; gap:20px; margin-bottom:15px;">
-                            <div style="text-align:center;"><p style="font-weight:600;">${userStories.length}</p><p style="font-size:12px; opacity:0.5;">Cerita Saya</p></div>
-                            <div style="text-align:center;"><p style="font-weight:600;">12</p><p style="font-size:12px; opacity:0.5;">Mengikuti</p></div>
-                            <div style="text-align:center;"><p style="font-weight:600;">45</p><p style="font-size:12px; opacity:0.5;">Pengikut</p></div>
+                            <div style="text-align:center;"><p style="font-weight:600;">${myStories.length}</p><p style="font-size:12px; opacity:0.5;">Cerita Saya</p></div>
+                            <div style="text-align:center;"><p style="font-weight:600;">${publishedStories.length}</p><p style="font-size:12px; opacity:0.5;">Terbit</p></div>
+                            <div style="text-align:center;"><p style="font-weight:600;">${pendingStories.length}</p><p style="font-size:12px; opacity:0.5;">Pending</p></div>
                         </div>
                         <button onclick="logout()" style="padding:8px 20px;background:transparent;border:1px solid rgba(0,0,0,0.15);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:inherit;transition:0.2s;" onmouseover="this.style.background='#fee2e2';this.style.borderColor='#ef4444';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.borderColor='rgba(0,0,0,0.15)';this.style.color='inherit'">⏻ Logout</button>
                     </div>
                 </div>
-                <h3 style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 25px;">Koleksi Pribadi</h3>
-                ${userStories.length === 0
-                    ? '<p style="opacity:0.4; text-align:center; padding: 40px;">Anda belum membuat cerita apapun.</p>'
-                    : `<div class="grid-list">${userStories.map(s => `
-                        <div class="card" onclick="loadStory('${s.id}')">
-                            <div class="icon-box">
-                                ${s.cover
-                                    ? `<img src="${s.cover}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
-                                    : `<i class="fa-solid ${s.icon}"></i>`}
-                            </div>
-                            <h3>${s.title}</h3>
-                            <p>${s.author}</p>
-                        </div>
-                    `).join('')}</div>`
-                }
+
+                <!-- PENDING ALERT -->
+                ${pendingStories.length > 0 ? `
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:32px;display:flex;align-items:center;gap:14px;">
+                    <span style="font-size:24px;">⏳</span>
+                    <div>
+                        <p style="font-weight:600;font-size:14px;margin-bottom:3px;">${pendingStories.length} cerita sedang menunggu persetujuan admin</p>
+                        <p style="font-size:12px;opacity:0.6;">Cerita akan muncul di rekomendasi setelah disetujui. Anda tetap bisa melihat dan mengeditnya di sini.</p>
+                    </div>
+                </div>` : ''}
+
+                <!-- CERITA PENDING -->
+                ${pendingStories.length > 0 ? `
+                <h3 style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 20px; font-size:14px; text-transform:uppercase; letter-spacing:1.5px; opacity:0.5;">Menunggu Persetujuan</h3>
+                <div class="grid-list" style="margin-top:0;margin-bottom:40px;">
+                    ${pendingStories.map(s => storyCard(s, true)).join('')}
+                </div>` : ''}
+
+                <!-- CERITA DITOLAK -->
+                ${rejectedStories.length > 0 ? `
+                <h3 style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 12px; margin-bottom: 20px; font-size:14px; text-transform:uppercase; letter-spacing:1.5px; opacity:0.5;">Perlu Revisi</h3>
+                <div class="grid-list" style="margin-top:0;margin-bottom:40px;">
+                    ${rejectedStories.map(s => storyCard(s, true)).join('')}
+                </div>` : ''}
+
+                <!-- CERITA TERBIT -->
+                <h3 style="border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 15px; margin-bottom: 25px;">Cerita Terbit</h3>
+                ${publishedStories.length === 0
+                    ? '<p style="opacity:0.4; text-align:center; padding: 40px;">Belum ada cerita yang diterbitkan.</p>'
+                    : `<div class="grid-list">${publishedStories.map(s => storyCard(s, true)).join('')}</div>`}
             </div>
         `;
+    }
+
+    function editStory(id) {
+        // Simpan ID cerita yang diedit ke localStorage, lalu buka editor
+        localStorage.setItem('editingStoryId', String(id));
+        window.location.href = 'CreateBook.html';
+    }
+
+    function deleteStory(id) {
+        if (!confirm('Hapus cerita ini? Tindakan tidak bisa dibatalkan.')) return;
+        const all = JSON.parse(localStorage.getItem('userStories') || '[]');
+        const filtered = all.filter(s => String(s.id) !== String(id));
+        localStorage.setItem('userStories', JSON.stringify(filtered));
+        toast('Cerita berhasil dihapus.');
+        viewProfile();
+    }
+
+    function toast(msg) {
+        let t = document.getElementById('globalToast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'globalToast';
+            t.style.cssText = 'position:fixed;bottom:28px;right:28px;background:#000;color:#fff;padding:14px 22px;border-radius:10px;font-size:14px;z-index:9999;display:none;animation:fadeIn 0.3s ease;max-width:300px;font-family:Lora,serif;';
+            document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 3000);
     }
 
     function filterStories() {

@@ -461,6 +461,43 @@ const OVERLAY_CSS = {
 const st = { tpl:0, bgPhoto:null, overlay:'none', font:"'Playfair Display',serif", textColor:'#ffffff', genre:'Novel', author:'Username', title:'Judul Cerita' };
 let finalCoverUrl = null;
 
+// ===== EDIT MODE: Load cerita yang sedang diedit =====
+(function loadEditMode() {
+    const editingId = localStorage.getItem('editingStoryId');
+    if (!editingId) return;
+
+    const all = JSON.parse(localStorage.getItem('userStories') || '[]');
+    const story = all.find(s => String(s.id) === String(editingId));
+    if (!story) { localStorage.removeItem('editingStoryId'); return; }
+
+    // Banner edit mode
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#fffbeb;border-bottom:1px solid #fde68a;padding:9px 24px;font-size:12px;color:#92400e;font-weight:600;text-align:center;flex-shrink:0;';
+    banner.innerHTML = `✏ Mode Edit — "<em>${story.title}</em>" &nbsp;·&nbsp; <a href="home.html" onclick="localStorage.removeItem('editingStoryId')" style="color:#92400e;text-decoration:underline;cursor:pointer;">Batal, kembali ke profil</a>`;
+    document.body.insertBefore(banner, document.querySelector('header'));
+
+    // Isi konten editor setelah DOM siap
+    window.addEventListener('load', () => {
+        const titleEl   = document.getElementById('storyTitle');
+        const contentEl = document.getElementById('storyContent');
+        if (titleEl && story.paperTitle) titleEl.innerText = story.paperTitle;
+        if (contentEl && story.content)  contentEl.innerHTML = story.content;
+        if (story.cover) finalCoverUrl = story.cover;
+
+        // Pre-fill metadata di modal publish
+        const cupTitle  = document.getElementById('cupTitle');
+        const cupAuthor = document.getElementById('cupAuthor');
+        const cupDesc   = document.getElementById('cupDesc');
+        const cupGenre  = document.getElementById('cupGenre');
+        const cupTags   = document.getElementById('cupTags');
+        if (cupTitle  && story.title)  cupTitle.value  = story.title;
+        if (cupAuthor && story.author) cupAuthor.value = story.author;
+        if (cupDesc   && story.desc)   cupDesc.value   = story.desc;
+        if (cupGenre  && story.genre)  cupGenre.value  = story.genre;
+        if (cupTags   && story.tags)   cupTags.value   = story.tags;
+    });
+})();
+
 /* ════════════════════════════════
    BUILD SWATCHES & COLORS
 ════════════════════════════════ */
@@ -884,32 +921,112 @@ function doPublish(){
     if(pendingCoverDataUrl) finalCoverUrl = pendingCoverDataUrl;
     closeCoverUploadModal();
 
-    // Judul sampul/beranda — dari panel, bisa berbeda dari judul di kertas
     const title   = document.getElementById('cupTitle').value.trim()
                     || document.getElementById('storyTitle').innerText.trim()
                     || 'Tanpa Judul';
-
-    // Judul yang tampil di dalam kertas saat dibaca
     const paperTitle = document.getElementById('storyTitle').innerText.trim();
-
-    // Isi cerita murni (tanpa judul)
     const content = document.getElementById('storyContent').innerHTML;
-
     const desc    = document.getElementById('cupDesc').value.trim();
     const author  = document.getElementById('cupAuthor').value.trim() || st.author || 'Username';
     const genre   = document.getElementById('cupGenre').value;
     const tags    = document.getElementById('cupTags').value.trim();
-    const all = JSON.parse(localStorage.getItem('userStories'))||[];
-    all.push({
-        id: Date.now(),
-        title,       // judul di kartu home & cover
-        paperTitle,  // judul yang tampil di dalam kertas saat dibaca
-        author, icon:'fa-book', cover:finalCoverUrl||null,
-        content, desc, genre, tags, rating:[], comments:[]
+
+    const currentUser = localStorage.getItem('username') || author;
+    const adminToken  = btoa('story:' + Date.now() + ':' + Math.random().toString(36).slice(2));
+    const approveUrl  = window.location.origin + '/admin.html?action=approve&type=story&token=' + adminToken;
+    const rejectUrl   = window.location.origin + '/admin.html?action=reject&type=story&token=' + adminToken;
+
+    const all = JSON.parse(localStorage.getItem('userStories') || '[]');
+    const editingId = localStorage.getItem('editingStoryId');
+
+    if (editingId) {
+        // MODE EDIT: update cerita yang ada, kembalikan ke pending jika ada perubahan konten
+        const idx = all.findIndex(s => String(s.id) === String(editingId));
+        if (idx !== -1) {
+            const oldStatus = all[idx].status;
+            all[idx] = {
+                ...all[idx],
+                title, paperTitle, author, authorUsername: currentUser,
+                cover: finalCoverUrl || all[idx].cover || null,
+                content, desc, genre, tags,
+                // Jika sudah published dan diedit ulang → kembali pending review
+                status: (oldStatus === 'published') ? 'pending' : (oldStatus || 'pending'),
+                editedAt: new Date().toISOString(),
+                adminToken, approveUrl, rejectUrl,
+                submittedAt: new Date().toISOString()
+            };
+            localStorage.setItem('userStories', JSON.stringify(all));
+            localStorage.removeItem('editingStoryId');
+
+            // Notif email ke admin tentang revisi
+            sendStoryToAdmin({ title, author, desc, genre, approveUrl, rejectUrl, isEdit: true })
+                .catch(console.error);
+
+            showPendingToast(title, true);
+        }
+    } else {
+        // MODE BARU
+        const newStory = {
+            id: Date.now(),
+            title, paperTitle, author, authorUsername: currentUser,
+            icon: 'fa-book',
+            cover: finalCoverUrl || null,
+            content, desc, genre, tags,
+            rating: [], comments: [],
+            status: 'pending',           // ← PENDING, bukan langsung publish
+            adminToken, approveUrl, rejectUrl,
+            submittedAt: new Date().toISOString()
+        };
+        all.push(newStory);
+        localStorage.setItem('userStories', JSON.stringify(all));
+
+        sendStoryToAdmin(newStory).catch(console.error);
+        showPendingToast(title, false);
+    }
+
+    setTimeout(() => { window.location.href = 'home.html'; }, 2800);
+}
+
+function showPendingToast(title, isEdit) {
+    // Ganti alert dengan toast yang lebih elegan
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position:fixed; bottom:32px; left:50%; transform:translateX(-50%);
+        background:#000; color:#fff; padding:18px 32px; border-radius:12px;
+        font-family:'Lora',serif; font-size:15px; z-index:9999;
+        box-shadow:0 10px 30px rgba(0,0,0,0.25); text-align:center;
+        animation: fadeInUp 0.4s ease;
+    `;
+    toast.innerHTML = `
+        <div style="font-size:24px;margin-bottom:8px;">⏳</div>
+        <strong>${isEdit ? 'Revisi' : 'Cerita'} "${title}" dikirim ke admin</strong><br>
+        <span style="font-size:13px;opacity:0.65;">Menunggu persetujuan. Anda bisa memantaunya di halaman profil.</span>
+    `;
+    document.body.appendChild(toast);
+}
+
+async function sendStoryToAdmin(story) {
+    // Gunakan EmailJS jika sudah dikonfigurasi
+    const EMAILJS_CONFIG_CB = {
+        publicKey: "YOUR_EMAILJS_PUBLIC_KEY",
+        serviceId:  "YOUR_EMAILJS_SERVICE_ID",
+        templateStoryAdmin: "template_story_pending"
+    };
+
+    if (typeof emailjs === 'undefined') return; // EmailJS tidak diload di halaman ini
+
+    emailjs.init({ publicKey: EMAILJS_CONFIG_CB.publicKey });
+    return emailjs.send(EMAILJS_CONFIG_CB.serviceId, EMAILJS_CONFIG_CB.templateStoryAdmin, {
+        to_email:    "admin@openyourbook.com", // ganti dengan email admin
+        story_title: story.title,
+        author:      story.author,
+        genre:       story.genre,
+        desc:        story.desc || 'Tidak ada deskripsi.',
+        is_edit:     story.isEdit ? 'Ya (revisi)' : 'Baru',
+        approve_url: story.approveUrl,
+        reject_url:  story.rejectUrl,
+        submitted_at: new Date().toLocaleString('id-ID')
     });
-    localStorage.setItem('userStories', JSON.stringify(all));
-    alert("Cerita diterbitkan! Mengalihkan ke Beranda...");
-    window.location.href='home.html';
 }
 </script>
 </body>
