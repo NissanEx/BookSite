@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar - Open Your Book</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- EmailJS untuk kirim email tanpa backend -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; }
+        body {
+            background: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #1a1a1a;
+        }
+
+        .header-title {
+            position: fixed;
+            top: 40px;
+            left: 40px;
+            font-size: 22px;
+            font-weight: 600;
+            z-index: 10;
+            letter-spacing: -0.5px;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 120px;
+            padding: 80px 40px;
+        }
+
+        .left {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .book-img {
+            width: 340px;
+            max-width: 100%;
+            filter: grayscale(0.2);
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0); }
+        }
+
+        .right {
+            display: flex;
+            justify-content: center;
+        }
+
+        .form-box {
+            width: 380px;
+        }
+
+        .form-box h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .form-box p.subtitle {
+            font-size: 14px;
+            opacity: 0.6;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .message-box {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: none;
+            text-align: center;
+            border: 1px solid;
+        }
+
+        .message-box.error {
+            background: #fdf2f2;
+            color: #9b1c1c;
+            border-color: #fbd5d5;
+        }
+
+        .message-box.success {
+            background: #f0fdf4;
+            color: #14532d;
+            border-color: #bbf7d0;
+        }
+
+        .message-box.warning {
+            background: #fffbeb;
+            color: #78350f;
+            border-color: #fde68a;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            background: #f9f9f9;
+            margin-bottom: 20px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: 'Lora', serif;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #000;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+            font-size: 14px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .two-col .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .two-col input {
+            margin-bottom: 0;
+        }
+
+        .field-group {
+            margin-bottom: 20px;
+        }
+
+        .field-group label {
+            margin-bottom: 8px;
+        }
+
+        .field-group input,
+        .field-group textarea {
+            margin-bottom: 0;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 15px 0;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #000;
+            color: white;
+            border: none;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background: #333;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 13px;
+            opacity: 0.5;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .btn-back:hover { opacity: 1; }
+
+        .pending-info {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 25px;
+            font-size: 13px;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+
+        .pending-info strong {
+            display: block;
+            margin-bottom: 6px;
+            opacity: 1;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #eee;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step.active .step-num {
+            background: #000;
+            color: #fff;
+        }
+
+        .step.done .step-num {
+            background: #000;
+            color: #fff;
+        }
+
+        .step-label { opacity: 0.5; }
+        .step.active .step-label { opacity: 1; }
+        .step.done .step-label { opacity: 0.5; }
+
+        .step-line {
+            flex: 1;
+            height: 1px;
+            background: #eee;
+            margin: 0 10px;
+        }
+
+        /* SUCCESS STATE */
+        .success-state {
+            display: none;
+            text-align: center;
+            padding: 40px 0;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+        }
+
+        .success-state h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .success-state p {
+            font-size: 14px;
+            opacity: 0.6;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                gap: 20px;
+                padding: 100px 24px 60px;
+            }
+            .header-title { left: 24px; top: 24px; }
+            .book-img { width: 140px; }
+            .form-box { width: 100%; max-width: 420px; }
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<a href="login.html" class="header-title">Open Your Book</a>
+
+<div class="container">
+    <div class="left">
+        <img src="img/Open_book_for_reading_symbol_vector___Premium_Vector-removebg-preview.png" class="book-img" alt="Buku">
+    </div>
+
+    <div class="right">
+        <div class="form-box">
+            <!-- FORM STATE -->
+            <div id="formState">
+                <div class="step-indicator">
+                    <div class="step active" id="step1">
+                        <div class="step-num">1</div>
+                        <span class="step-label">Daftar</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step2">
+                        <div class="step-num">2</div>
+                        <span class="step-label">Menunggu</span>
+                    </div>
+                    <div class="step-line"></div>
+                    <div class="step" id="step3">
+                        <div class="step-num">3</div>
+                        <span class="step-label">Aktif</span>
+                    </div>
+                </div>
+
+                <h2>Buat Akun</h2>
+                <p class="subtitle">Isi data diri Anda. Permohonan akan dikirim ke admin untuk disetujui.</p>
+
+                <div class="pending-info">
+                    <strong>📋 Alur Pendaftaran</strong>
+                    Setelah mengisi formulir, permohonan Anda akan dikirim ke email admin. Admin akan menyetujui akun Anda, dan notifikasi persetujuan akan dikirim ke email Anda secara otomatis.
+                </div>
+
+                <div id="msg" class="message-box error"></div>
+
+                <div class="two-col">
+                    <div class="field-group">
+                        <label>Username *</label>
+                        <input type="text" id="regUsername" placeholder="namaunik123" maxlength="30">
+                    </div>
+                    <div class="field-group">
+                        <label>Nama Lengkap *</label>
+                        <input type="text" id="regName" placeholder="Nama Anda">
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label>Email Anda *</label>
+                    <input type="email" id="regEmail" placeholder="email@contoh.com">
+                </div>
+
+                <div class="two-col">
+                    <div class="field-group">
+                        <label>Password *</label>
+                        <input type="password" id="regPass" placeholder="Minimal 6 karakter">
+                    </div>
+                    <div class="field-group">
+                        <label>Konfirmasi *</label>
+                        <input type="password" id="regPassConfirm" placeholder="Ulangi password">
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label>Alasan Bergabung <span style="opacity:0.5; text-transform: none; letter-spacing: 0;">(opsional)</span></label>
+                    <textarea id="regReason" placeholder="Ceritakan minat Anda dalam membaca/menulis..."></textarea>
+                </div>
+
+                <button class="btn-submit" id="submitBtn" onclick="submitRegister()">
+                    <div class="spinner" id="spinner"></div>
+                    <span id="btnText">Kirim Permohonan</span>
+                </button>
+
+                <a href="login.html" class="btn-back">← Sudah punya akun? Masuk</a>
+            </div>
+
+            <!-- SUCCESS STATE -->
+            <div class="success-state" id="successState">
+                <div class="success-icon">📬</div>
+                <h3>Permohonan Terkirim!</h3>
+                <p>
+                    Permohonan akun Anda telah dikirim ke admin.<br>
+                    Anda akan mendapat email konfirmasi setelah disetujui.<br><br>
+                    <strong>Sementara itu, Anda bisa login dan menjelajahi cerita sebagai tamu.</strong>
+                </p>
+                <a href="login.html" style="display:inline-block; padding: 12px 32px; background: #000; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
+                    Kembali ke Login
+                </a>
+                <br>
+                <p style="font-size: 12px; margin-top: 20px; opacity: 0.4;">
+                    Cek folder spam jika tidak ada email dalam 24 jam.
+                </p>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // KONFIGURASI EMAILJS
+    // Daftar di emailjs.com → buat service + template → isi ID berikut
+    // ============================================================
+    const EMAILJS_CONFIG = {
+        publicKey: "YOUR_EMAILJS_PUBLIC_KEY",      // dari Account > API Keys
+        serviceId:  "YOUR_EMAILJS_SERVICE_ID",     // dari Email Services
+        // Template untuk notif ke ADMIN (berisi tombol ACC)
+        templateAdmin: "template_admin_register",
+        // Template untuk notif ke USER (berisi pesan welcome)
+        templateUser:  "template_user_approved",
+        // Email admin (GANTI dengan email Anda)
+        adminEmail: "admin@openyourbook.com"
+    };
+
+    // Init EmailJS
+    (function() {
+        emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+    })();
+
+    function showMsg(text, type = 'error') {
+        const box = document.getElementById('msg');
+        box.className = 'message-box ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+        if (type !== 'warning') {
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
+    }
+
+    function setLoading(on) {
+        const btn = document.getElementById('submitBtn');
+        const spinner = document.getElementById('spinner');
+        const txt = document.getElementById('btnText');
+        btn.disabled = on;
+        spinner.style.display = on ? 'block' : 'none';
+        txt.textContent = on ? 'Mengirim...' : 'Kirim Permohonan';
+    }
+
+    async function submitRegister() {
+        const username = document.getElementById('regUsername').value.trim();
+        const name     = document.getElementById('regName').value.trim();
+        const email    = document.getElementById('regEmail').value.trim();
+        const pass     = document.getElementById('regPass').value;
+        const passConf = document.getElementById('regPassConfirm').value;
+        const reason   = document.getElementById('regReason').value.trim();
+
+        // Validasi
+        if (!username || !name || !email || !pass || !passConf) {
+            showMsg('Mohon isi semua field yang wajib (*).'); return;
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            showMsg('Username hanya boleh huruf, angka, dan underscore.'); return;
+        }
+        if (pass.length < 6) {
+            showMsg('Password minimal 6 karakter.'); return;
+        }
+        if (pass !== passConf) {
+            showMsg('Password dan konfirmasi tidak cocok.'); return;
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            showMsg('Format email tidak valid.'); return;
+        }
+
+        // Cek username tidak duplikat (lokal)
+        const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+        if (existingUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            showMsg('Username sudah digunakan, pilih username lain.'); return;
+        }
+
+        setLoading(true);
+
+        // Token unik untuk link approval
+        const token = btoa(username + ':' + Date.now() + ':' + Math.random().toString(36).slice(2));
+        const approveUrl = window.location.origin + '/admin.html?action=approve&token=' + token;
+        const rejectUrl  = window.location.origin + '/admin.html?action=reject&token=' + token;
+
+        // Simpan data pendaftaran sementara (status: pending)
+        const pendingData = {
+            id: 'reg_' + Date.now(),
+            username, name, email,
+            passwordHash: btoa(pass), // obfuscation sederhana (bukan enkripsi nyata)
+            reason: reason || 'Tidak disebutkan',
+            token,
+            status: 'pending',
+            requestedAt: new Date().toISOString()
+        };
+
+        // Simpan ke pendingRegistrations
+        const pending = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
+        pending.push(pendingData);
+        localStorage.setItem('pendingRegistrations', JSON.stringify(pending));
+
+        // Kirim email ke ADMIN
+        const adminParams = {
+            to_email:    EMAILJS_CONFIG.adminEmail,
+            to_name:     'Admin',
+            from_name:   name,
+            from_email:  email,
+            username:    username,
+            reason:      reason || 'Tidak disebutkan',
+            approve_url: approveUrl,
+            reject_url:  rejectUrl,
+            request_time: new Date().toLocaleString('id-ID')
+        };
+
+        try {
+            await emailjs.send(
+                EMAILJS_CONFIG.serviceId,
+                EMAILJS_CONFIG.templateAdmin,
+                adminParams
+            );
+
+            // Email ke USER (konfirmasi diterima)
+            const userParams = {
+                to_email: email,
+                to_name:  name,
+                username: username,
+                status:   'pending'
+            };
+
+            // Coba kirim ke user (tidak block jika gagal)
+            try {
+                await emailjs.send(
+                    EMAILJS_CONFIG.serviceId,
+                    'template_register_received', // template konfirmasi ke user
+                    userParams
+                );
+            } catch(e) {
+                console.log('Email ke user gagal, tapi tetap lanjut:', e);
+            }
+
+            // Tampilkan sukses
+            document.getElementById('formState').style.display = 'none';
+            document.getElementById('successState').style.display = 'block';
+
+        } catch (err) {
+            console.error('EmailJS error:', err);
+
+            // FALLBACK: jika EmailJS belum dikonfigurasi, simpan lokal saja
+            if (err.text && err.text.includes('public key')) {
+                // EmailJS belum dikonfigurasi → simpan lokal, anggap berhasil
+                document.getElementById('formState').style.display = 'none';
+                document.getElementById('successState').style.display = 'block';
+                showMsg('(Dev mode) EmailJS belum dikonfigurasi. Data disimpan lokal.', 'warning');
+            } else {
+                showMsg('Gagal mengirim permohonan. Coba lagi atau hubungi admin.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.getElementById('formState').style.display !== 'none') {
+            submitRegister();
+        }
+    });
+</script>
+
+</body>
+</html>
