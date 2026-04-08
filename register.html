@@ -5,349 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar - Open Your Book</title>
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
-    <!-- EmailJS untuk kirim email tanpa backend -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; }
-        body {
-            background: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            color: #1a1a1a;
-        }
+        body { background: #fff; min-height: 100vh; display: flex; flex-direction: column; color: #1a1a1a; }
 
-        .header-title {
-            position: fixed;
-            top: 40px;
-            left: 40px;
-            font-size: 22px;
-            font-weight: 600;
-            z-index: 10;
-            letter-spacing: -0.5px;
-            cursor: pointer;
-            text-decoration: none;
-            color: inherit;
-        }
+        .header-title { position: fixed; top: 40px; left: 40px; font-size: 22px; font-weight: 600; z-index: 10; letter-spacing: -0.5px; cursor: pointer; text-decoration: none; color: inherit; }
 
-        .container {
-            width: 100%;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 120px;
-            padding: 80px 40px;
-        }
+        .container { width: 100%; min-height: 100vh; display: flex; align-items: center; justify-content: center; gap: 120px; padding: 80px 40px; }
 
-        .left {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        .left { display: flex; justify-content: center; align-items: center; }
 
-        .book-img {
-            width: 340px;
-            max-width: 100%;
-            filter: grayscale(0.2);
-            animation: float 4s ease-in-out infinite;
-        }
+        .book-img { width: 340px; max-width: 100%; filter: grayscale(0.2); animation: float 4s ease-in-out infinite; }
 
-        @keyframes float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-            100% { transform: translateY(0); }
-        }
+        @keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-15px); } 100% { transform: translateY(0); } }
 
-        .right {
-            display: flex;
-            justify-content: center;
-        }
+        .right { display: flex; justify-content: center; }
 
-        .form-box {
-            width: 380px;
-        }
+        .form-box { width: 380px; }
 
-        .form-box h2 {
-            font-size: 28px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
+        .form-box h2 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
 
-        .form-box p.subtitle {
-            font-size: 14px;
-            opacity: 0.6;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
+        .form-box p.subtitle { font-size: 14px; opacity: 0.6; margin-bottom: 30px; line-height: 1.6; }
 
-        .message-box {
-            padding: 14px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            display: none;
-            text-align: center;
-            border: 1px solid;
-        }
+        .message-box { padding: 14px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; display: none; text-align: center; border: 1px solid; }
+        .message-box.error { background: #fdf2f2; color: #9b1c1c; border-color: #fbd5d5; }
+        .message-box.success { background: #f0fdf4; color: #14532d; border-color: #bbf7d0; }
+        .message-box.warning { background: #fffbeb; color: #78350f; border-color: #fde68a; }
 
-        .message-box.error {
-            background: #fdf2f2;
-            color: #9b1c1c;
-            border-color: #fbd5d5;
-        }
+        label { display: block; margin-bottom: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
 
-        .message-box.success {
-            background: #f0fdf4;
-            color: #14532d;
-            border-color: #bbf7d0;
-        }
+        input, textarea { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #eee; background: #f9f9f9; margin-bottom: 20px; font-size: 15px; transition: all 0.3s; font-family: 'Lora', serif; }
 
-        .message-box.warning {
-            background: #fffbeb;
-            color: #78350f;
-            border-color: #fde68a;
-        }
+        input:focus, textarea:focus { outline: none; border-color: #000; background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.7;
-        }
+        textarea { min-height: 90px; resize: vertical; font-size: 14px; }
 
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            background: #f9f9f9;
-            margin-bottom: 20px;
-            font-size: 15px;
-            transition: all 0.3s;
-            font-family: 'Lora', serif;
-        }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .two-col .field-group { display: flex; flex-direction: column; }
+        .two-col input { margin-bottom: 0; }
 
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #000;
-            background: #fff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-        }
+        .field-group { margin-bottom: 20px; }
+        .field-group label { margin-bottom: 8px; }
+        .field-group input, .field-group textarea { margin-bottom: 0; }
 
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-            font-size: 14px;
-        }
+        .btn-submit { width: 100%; padding: 15px 0; font-size: 13px; font-weight: 600; border-radius: 8px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; background: #000; color: white; border: none; margin-top: 10px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); background: #333; }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-
-        .two-col .field-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .two-col input {
-            margin-bottom: 0;
-        }
-
-        .field-group {
-            margin-bottom: 20px;
-        }
-
-        .field-group label {
-            margin-bottom: 8px;
-        }
-
-        .field-group input,
-        .field-group textarea {
-            margin-bottom: 0;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 15px 0;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: #000;
-            color: white;
-            border: none;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-            background: #333;
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-back {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            font-size: 13px;
-            opacity: 0.5;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            text-decoration: none;
-            color: inherit;
-        }
-
+        .btn-back { display: block; text-align: center; margin-top: 20px; font-size: 13px; opacity: 0.5; cursor: pointer; transition: opacity 0.2s; text-decoration: none; color: inherit; }
         .btn-back:hover { opacity: 1; }
 
-        .pending-info {
-            background: #f9f9f9;
-            border: 1px solid #eee;
-            border-radius: 10px;
-            padding: 18px;
-            margin-bottom: 25px;
-            font-size: 13px;
-            line-height: 1.8;
-            opacity: 0.8;
-        }
+        .pending-info { background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 18px; margin-bottom: 25px; font-size: 13px; line-height: 1.8; opacity: 0.8; }
+        .pending-info strong { display: block; margin-bottom: 6px; opacity: 1; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .pending-info strong {
-            display: block;
-            margin-bottom: 6px;
-            opacity: 1;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            margin-bottom: 30px;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .step-num {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #eee;
-            color: #999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .step.active .step-num {
-            background: #000;
-            color: #fff;
-        }
-
-        .step.done .step-num {
-            background: #000;
-            color: #fff;
-        }
-
+        .step-indicator { display: flex; align-items: center; gap: 0; margin-bottom: 30px; }
+        .step { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        .step-num { width: 24px; height: 24px; border-radius: 50%; background: #eee; color: #999; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+        .step.active .step-num, .step.done .step-num { background: #000; color: #fff; }
         .step-label { opacity: 0.5; }
         .step.active .step-label { opacity: 1; }
-        .step.done .step-label { opacity: 0.5; }
+        .step-line { flex: 1; height: 1px; background: #eee; margin: 0 10px; }
 
-        .step-line {
-            flex: 1;
-            height: 1px;
-            background: #eee;
-            margin: 0 10px;
-        }
+        .success-state { display: none; text-align: center; padding: 40px 0; animation: fadeIn 0.5s ease; }
+        .success-icon { width: 80px; height: 80px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 36px; }
+        .success-state h3 { font-size: 24px; margin-bottom: 12px; }
+        .success-state p { font-size: 14px; opacity: 0.6; line-height: 1.8; margin-bottom: 24px; }
 
-        /* SUCCESS STATE */
-        .success-state {
-            display: none;
-            text-align: center;
-            padding: 40px 0;
-            animation: fadeIn 0.5s ease;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .success-icon {
-            width: 80px;
-            height: 80px;
-            background: #000;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 36px;
-        }
-
-        .success-state h3 {
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-
-        .success-state p {
-            font-size: 14px;
-            opacity: 0.6;
-            line-height: 1.8;
-            margin-bottom: 24px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Loading spinner */
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: none;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         @media (max-width: 900px) {
-            .container {
-                flex-direction: column;
-                gap: 20px;
-                padding: 100px 24px 60px;
-            }
+            .container { flex-direction: column; gap: 20px; padding: 100px 24px 60px; }
             .header-title { left: 24px; top: 24px; }
             .book-img { width: 140px; }
             .form-box { width: 100%; max-width: 420px; }
@@ -390,7 +120,7 @@
 
                 <div class="pending-info">
                     <strong>📋 Alur Pendaftaran</strong>
-                    Setelah mengisi formulir, permohonan Anda akan dikirim ke email admin. Admin akan menyetujui akun Anda, dan notifikasi persetujuan akan dikirim ke email Anda secara otomatis.
+                    Setelah mengisi formulir, permohonan Anda akan dikirim ke admin. Admin akan menyetujui akun Anda, dan notifikasi persetujuan akan dikirim ke email Anda.
                 </div>
 
                 <div id="msg" class="message-box error"></div>
@@ -442,41 +172,26 @@
                 <p>
                     Permohonan akun Anda telah dikirim ke admin.<br>
                     Anda akan mendapat email konfirmasi setelah disetujui.<br><br>
-                    <strong>Anda sudah otomatis masuk dan bisa langsung menjelajahi cerita!</strong>
+                    <strong>Pantau email Anda untuk pemberitahuan dari admin.</strong>
                 </p>
-                <a href="home.html" style="display:inline-block; padding: 12px 32px; background: #000; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
-                    Mulai Jelajahi →
+                <a href="login.html" style="display:inline-block; padding: 12px 32px; background: #000; color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px; text-transform: uppercase;">
+                    Kembali ke Login →
                 </a>
                 <br>
                 <p style="font-size: 12px; margin-top: 20px; opacity: 0.4;">
                     Cek folder spam jika tidak ada email dalam 24 jam.
                 </p>
             </div>
-
         </div>
     </div>
 </div>
 
 <script>
     // ============================================================
-    // KONFIGURASI EMAILJS
-    // Daftar di emailjs.com → buat service + template → isi ID berikut
+    // KONFIGURASI SUPABASE
     // ============================================================
-    const EMAILJS_CONFIG = {
-        publicKey: "YOUR_EMAILJS_PUBLIC_KEY",      // dari Account > API Keys
-        serviceId:  "YOUR_EMAILJS_SERVICE_ID",     // dari Email Services
-        // Template untuk notif ke ADMIN (berisi tombol ACC)
-        templateAdmin: "template_admin_register",
-        // Template untuk notif ke USER (berisi pesan welcome)
-        templateUser:  "template_user_approved",
-        // Email admin (GANTI dengan email Anda)
-        adminEmail: "admin@openyourbook.com"
-    };
-
-    // Init EmailJS
-    (function() {
-        emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
-    })();
+    const SUPABASE_URL = 'https://hrncbsvzgwdamatydyfu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_DkZQ2s0r45LPiSOXHJvnGQ_Gf6F47V9';
 
     function showMsg(text, type = 'error') {
         const box = document.getElementById('msg');
@@ -489,12 +204,12 @@
     }
 
     function setLoading(on) {
-        const btn = document.getElementById('submitBtn');
+        const btn     = document.getElementById('submitBtn');
         const spinner = document.getElementById('spinner');
-        const txt = document.getElementById('btnText');
-        btn.disabled = on;
+        const txt     = document.getElementById('btnText');
+        btn.disabled          = on;
         spinner.style.display = on ? 'block' : 'none';
-        txt.textContent = on ? 'Mengirim...' : 'Kirim Permohonan';
+        txt.textContent       = on ? 'Mengirim...' : 'Kirim Permohonan';
     }
 
     async function submitRegister() {
@@ -522,111 +237,72 @@
             showMsg('Format email tidak valid.'); return;
         }
 
-        // Cek username tidak duplikat (lokal)
-        const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        if (existingUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-            showMsg('Username sudah digunakan, pilih username lain.'); return;
-        }
-
         setLoading(true);
 
-        // Token unik untuk link approval
-        const token = btoa(username + ':' + Date.now() + ':' + Math.random().toString(36).slice(2));
-        const approveUrl = window.location.origin + '/admin.html?action=approve&token=' + token;
-        const rejectUrl  = window.location.origin + '/admin.html?action=reject&token=' + token;
-
-        // Simpan data pendaftaran sementara (status: pending)
-        const pendingData = {
-            id: 'reg_' + Date.now(),
-            username, name, email,
-            passwordHash: btoa(pass), // obfuscation sederhana (bukan enkripsi nyata)
-            reason: reason || 'Tidak disebutkan',
-            token,
-            status: 'pending',
-            requestedAt: new Date().toISOString()
-        };
-
-        // Simpan ke pendingRegistrations
-        const pending = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
-        pending.push(pendingData);
-        localStorage.setItem('pendingRegistrations', JSON.stringify(pending));
-
-        // Kirim email ke ADMIN
-        const adminParams = {
-            to_email:    EMAILJS_CONFIG.adminEmail,
-            to_name:     'Admin',
-            from_name:   name,
-            from_email:  email,
-            username:    username,
-            reason:      reason || 'Tidak disebutkan',
-            approve_url: approveUrl,
-            reject_url:  rejectUrl,
-            request_time: new Date().toLocaleString('id-ID')
-        };
-
         try {
-            await emailjs.send(
-                EMAILJS_CONFIG.serviceId,
-                EMAILJS_CONFIG.templateAdmin,
-                adminParams
+            // Cek apakah username sudah ada di Supabase
+            const checkRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/pending_registrations?username=eq.${encodeURIComponent(username)}&select=username`,
+                {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    }
+                }
             );
-
-            // Email ke USER (konfirmasi diterima)
-            const userParams = {
-                to_email: email,
-                to_name:  name,
-                username: username,
-                status:   'pending'
-            };
-
-            // Coba kirim ke user (tidak block jika gagal)
-            try {
-                await emailjs.send(
-                    EMAILJS_CONFIG.serviceId,
-                    'template_register_received', // template konfirmasi ke user
-                    userParams
-                );
-            } catch(e) {
-                console.log('Email ke user gagal, tapi tetap lanjut:', e);
+            const existing = await checkRes.json();
+            if (existing && existing.length > 0) {
+                showMsg('Username sudah digunakan atau sudah pernah mendaftar.'); 
+                setLoading(false); return;
             }
 
-            // Tampilkan sukses
-            autoLoginUser(username);
+            // Token unik untuk link approval di email admin
+            const token = btoa(username + ':' + Date.now() + ':' + Math.random().toString(36).slice(2));
+
+            // Insert ke Supabase
+            const insertRes = await fetch(
+                `${SUPABASE_URL}/rest/v1/pending_registrations`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        username:      username,
+                        name:          name,
+                        email:         email,
+                        password_hash: btoa(pass), // obfuscation sederhana
+                        reason:        reason || null,
+                        token:         token,
+                        status:        'pending',
+                        requested_at:  new Date().toISOString()
+                    })
+                }
+            );
+
+            if (!insertRes.ok) {
+                const errData = await insertRes.json();
+                // Error duplikat (kode PostgreSQL 23505)
+                if (errData.code === '23505') {
+                    showMsg('Username atau email sudah terdaftar.');
+                } else {
+                    showMsg('Gagal mengirim permohonan: ' + (errData.message || 'Coba lagi.'));
+                }
+                setLoading(false); return;
+            }
+
+            // Sukses → tampilkan halaman sukses
             document.getElementById('formState').style.display = 'none';
             document.getElementById('successState').style.display = 'block';
 
         } catch (err) {
-            console.error('EmailJS error:', err);
-
-            // FALLBACK: jika EmailJS belum dikonfigurasi, simpan lokal saja & langsung login
-            autoLoginUser(username);
-            document.getElementById('formState').style.display = 'none';
-            document.getElementById('successState').style.display = 'block';
+            console.error('Error:', err);
+            showMsg('Terjadi kesalahan jaringan. Periksa koneksi Anda.');
         } finally {
             setLoading(false);
-        }
-    }
-
-    // ============================================================
-    // AUTO LOGIN: simpan session & daftarkan user ke registeredUsers
-    // ============================================================
-    function autoLoginUser(username) {
-        // Simpan session login
-        localStorage.setItem('isLogin', 'true');
-        localStorage.setItem('username', username);
-
-        // Tambahkan ke registeredUsers agar login.html bisa verifikasi nanti
-        const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-        const pending = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
-        const userData = pending.find(u => u.username === username);
-        if (userData && !existingUsers.some(u => u.username === username)) {
-            existingUsers.push({
-                username: userData.username,
-                name: userData.name,
-                email: userData.email,
-                passwordHash: userData.passwordHash
-            });
-            localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
         }
     }
 
