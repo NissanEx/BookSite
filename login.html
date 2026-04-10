@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Open Your Book - Login</title>
-
-    <!-- FONT LORA -->
     <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
     <style>
-        /* ================== STYLING UTAMA ================== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; }
         body { 
             background: #ffffff; 
@@ -21,7 +18,6 @@
             color: #1a1a1a;
         }
         
-        /* JUDUL TETAP DI POJOK KIRI ATAS */
         .header-title { 
             position: absolute; 
             top: 40px; 
@@ -69,9 +65,7 @@
             justify-content: center; 
         }
 
-        .form-box { 
-            width: 360px; 
-        }
+        .form-box { width: 360px; }
 
         .form-box h2 {
             font-size: 28px;
@@ -85,17 +79,19 @@
             margin-bottom: 30px;
         }
 
+        /* MESSAGE BOX — bisa error/warning/success */
         .message-box {
-            background: #fdf2f2;
-            color: #9b1c1c;
             padding: 12px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 13px;
             display: none;
             text-align: center;
-            border: 1px solid #fbd5d5;
+            border: 1px solid;
         }
+        .message-box.error   { background: #fdf2f2; color: #9b1c1c; border-color: #fbd5d5; }
+        .message-box.warning { background: #fffbeb; color: #78350f; border-color: #fde68a; }
+        .message-box.success { background: #f0fdf4; color: #14532d; border-color: #bbf7d0; }
 
         label { 
             display: block; 
@@ -116,6 +112,7 @@
             margin-bottom: 20px; 
             font-size: 15px; 
             transition: all 0.3s;
+            font-family: 'Lora', serif;
         }
         
         input:focus {
@@ -125,12 +122,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.03);
         }
 
-        .btn-group { display: flex; flex-direction: column; gap: 15px; }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; }
         
-        .main-actions {
-            display: flex;
-            gap: 12px;
-        }
+        .main-actions { display: flex; gap: 12px; }
 
         button { 
             width: 100%; 
@@ -153,6 +147,7 @@
             border: 1px solid rgba(0,0,0,0.1); 
             color: #000;
             width: 120px;
+            flex-shrink: 0;
         }
         
         .btn-login { 
@@ -161,28 +156,32 @@
             border: none; 
             flex: 0 0 56px;
             width: 56px;
-            border-radius: 8px;
         }
+
+        /* Spinner dalam tombol login */
+        .btn-login .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .divider {
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 10px 0;
+            margin: 2px 0;
             color: #bbb;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #eee;
-        }
-
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #eee; }
         .divider:not(:empty)::before { margin-right: 1.5em; }
-        .divider:not(:empty)::after { margin-left: 1.5em; }
+        .divider:not(:empty)::after  { margin-left: 1.5em; }
 
         .btn-google {
             background: white;
@@ -192,64 +191,61 @@
             text-transform: none;
             letter-spacing: 0;
         }
-
         .btn-google svg { width: 18px; }
+
+        /* TOMBOL TAMU */
+        .btn-tamu {
+            background: transparent;
+            border: 1px solid #eee;
+            color: #888;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            text-transform: none;
+            gap: 8px;
+        }
+        .btn-tamu:hover { background: #f9f9f9; border-color: #ccc; color: #555; }
 
         button:hover { 
             transform: translateY(-2px); 
             box-shadow: 0 8px 20px rgba(0,0,0,0.1); 
         }
-
-        .btn-login:hover { background: #333; }
+        .btn-login:hover  { background: #333; }
         .btn-daftar:hover { background: #f5f5f5; border-color: #000; }
 
-        .fade-in { animation: fade 1s ease forwards; }
-        
-        @keyframes fade { 
-            from { opacity: 0; transform: translateY(10px); } 
-            to { opacity: 1; transform: translateY(0); } 
+        /* Badge tamu kecil */
+        .tamu-badge {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #9ca3af;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.5px;
+            font-weight: 600;
         }
 
-        /* Responsive Mobile */
+        .fade-in { animation: fade 1s ease forwards; }
+        @keyframes fade { 
+            from { opacity: 0; transform: translateY(10px); } 
+            to   { opacity: 1; transform: translateY(0); } 
+        }
+
         @media (max-width: 900px) {
             body { overflow-y: auto; height: auto; min-height: 100vh; }
-            .container { 
-                flex-direction: column; 
-                gap: 20px; 
-                padding: 100px 30px 60px 30px; 
-                justify-content: flex-start;
-            }
-            .header-title { 
-                left: 30px;
-                top: 30px; 
-                transform: none;
-                text-align: left;
-            }
-            .book-img { 
-                width: 180px; 
-                margin-bottom: 10px;
-            }
-            .form-box { 
-                width: 100%; 
-                max-width: 400px; 
-            }
-            .form-box h2 {
-                font-size: 24px;
-                text-align: center;
-            }
-            .form-box p.subtitle {
-                text-align: center;
-                margin-bottom: 25px;
-            }
-            .btn-daftar {
-                width: 100%;
-            }
+            .container { flex-direction: column; gap: 20px; padding: 100px 30px 60px; justify-content: flex-start; }
+            .header-title { left: 30px; top: 30px; }
+            .book-img { width: 180px; margin-bottom: 10px; }
+            .form-box { width: 100%; max-width: 400px; }
+            .form-box h2 { font-size: 24px; text-align: center; }
+            .form-box p.subtitle { text-align: center; margin-bottom: 25px; }
+            .btn-daftar { width: 100%; }
             .container::after { content: ''; display: block; height: 40px; }
         }
     </style>
-    <!-- Jika sudah login, langsung ke home -->
+
     <script>
         (function() {
+            // Kalau sudah login (bukan tamu), langsung ke home
             if (localStorage.getItem('isLogin') === 'true') {
                 window.location.replace('home.html');
             }
@@ -263,18 +259,16 @@
 
 <div class="container">
 
-    <!-- KIRI (Ilustrasi) -->
     <div class="left fade-in">
         <img src="img/Open_book_for_reading_symbol_vector___Premium_Vector-removebg-preview.png" class="book-img" alt="Buku Terbuka">
     </div>
 
-    <!-- KANAN (Form) -->
     <div class="right fade-in">
         <div class="form-box">
             <h2>Selamat Datang</h2>
             <p class="subtitle">Masuk untuk melanjutkan membaca cerita favorit Anda.</p>
 
-            <div id="error-msg" class="message-box"></div>
+            <div id="msg" class="message-box error"></div>
 
             <label for="username">Username</label>
             <input type="text" id="username" placeholder="Nama pengguna Anda">
@@ -283,10 +277,12 @@
             <input type="password" id="password" placeholder="Kata sandi Anda">
 
             <div class="btn-group">
+                <!-- Daftar + Login -->
                 <div class="main-actions">
                     <button class="btn-daftar" onclick="showRegister()">Daftar</button>
-                    <button class="btn-login" onclick="login()" title="Kirim / Masuk">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <button class="btn-login" id="btnLogin" onclick="login()" title="Masuk">
+                        <div class="spinner" id="spinner"></div>
+                        <svg id="sendIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                         </svg>
@@ -295,6 +291,7 @@
 
                 <div class="divider">Atau</div>
 
+                <!-- Google -->
                 <button class="btn-google" onclick="loginWithGoogle()">
                     <svg viewBox="0 0 48 48" style="width:18px;">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
@@ -305,9 +302,16 @@
                     Lanjutkan dengan Google
                 </button>
 
+                <!-- TAMU -->
+                <button class="btn-tamu" onclick="loginAsTamu()">
+                    <span>👤</span>
+                    Masuk sebagai Tamu
+                    <span class="tamu-badge">Akses terbatas</span>
+                </button>
+
             </div>
             
-            <p style="margin-top: 30px; text-align: center; font-size: 12px; opacity: 0.4;">
+            <p style="margin-top: 24px; text-align: center; font-size: 12px; opacity: 0.4;">
                 &copy; 2024 Open Your Book. Literasi tanpa batas.
             </p>
         </div>
@@ -316,54 +320,140 @@
 </div>
 
 <script>
-function showMessage(msg) {
-    const box = document.getElementById("error-msg");
-    box.innerText = msg;
-    box.style.display = "block";
-    setTimeout(() => { box.style.display = "none"; }, 4000);
-}
+    // ============================================================
+    // KONFIGURASI SUPABASE
+    // ============================================================
+    const SUPABASE_URL = 'https://hrncbsvzgwdamatydyfu.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_DkZQ2s0r45LPiSOXHJvnGQ_Gf6F47V9';
 
-function login() {
-    const username = document.getElementById("username").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    if (!username || !password) {
-        showMessage("Silakan isi username dan password Anda.");
-        return;
+    // ============================================================
+    // HELPERS
+    // ============================================================
+    function showMsg(text, type = 'error') {
+        const box = document.getElementById('msg');
+        box.className = 'message-box ' + type;
+        box.textContent = text;
+        box.style.display = 'block';
+        if (type !== 'warning') {
+            setTimeout(() => { box.style.display = 'none'; }, 5000);
+        }
     }
 
-    localStorage.setItem("isLogin", "true");
-    localStorage.setItem("username", username);
-
-    const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
-    localStorage.removeItem('redirectAfterLogin');
-    fadeOutAndRedirect(redirect);
-}
-
-function showRegister() {
-    fadeOutAndRedirect('register.html');
-}
-
-// ✅ DIREVISI: langsung redirect ke API route Google OAuth
-function loginWithGoogle() {
-    const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
-    localStorage.setItem('redirectAfterLogin', redirect);
-    window.location.href = '/api/auth/google';
-}
-
-function fadeOutAndRedirect(url) {
-    document.body.style.transition = "opacity 0.5s ease";
-    document.body.style.opacity = "0";
-    setTimeout(() => {
-        window.location.href = url;
-    }, 500);
-}
-
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-        login();
+    function setLoading(on) {
+        const btn     = document.getElementById('btnLogin');
+        const spinner = document.getElementById('spinner');
+        const icon    = document.getElementById('sendIcon');
+        btn.disabled         = on;
+        spinner.style.display = on ? 'block' : 'none';
+        icon.style.display    = on ? 'none'  : 'block';
     }
-});
+
+    function fadeOutAndRedirect(url) {
+        document.body.style.transition = 'opacity 0.5s ease';
+        document.body.style.opacity    = '0';
+        setTimeout(() => { window.location.href = url; }, 500);
+    }
+
+    // ============================================================
+    // LOGIN — verifikasi ke Supabase
+    // ============================================================
+    async function login() {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+            showMsg('Silakan isi username dan password Anda.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Cari user di Supabase berdasarkan username + status approved
+            const res = await fetch(
+                `${SUPABASE_URL}/rest/v1/pending_registrations?username=eq.${encodeURIComponent(username)}&select=username,name,email,password_hash,status`,
+                {
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_KEY
+                    }
+                }
+            );
+
+            const data = await res.json();
+
+            // Username tidak ditemukan
+            if (!data || data.length === 0) {
+                showMsg('Username tidak ditemukan. Silakan daftar terlebih dahulu.');
+                setLoading(false); return;
+            }
+
+            const user = data[0];
+
+            // Akun masih pending (belum disetujui admin)
+            if (user.status === 'pending') {
+                showMsg('⏳ Akun Anda masih menunggu persetujuan admin. Harap bersabar.', 'warning');
+                setLoading(false); return;
+            }
+
+            // Akun ditolak
+            if (user.status === 'rejected') {
+                showMsg('❌ Akun Anda ditolak oleh admin. Hubungi kami untuk informasi lebih lanjut.', 'error');
+                setLoading(false); return;
+            }
+
+            // Verifikasi password (dibandingkan dengan password_hash = btoa(pass))
+            if (user.password_hash !== btoa(password)) {
+                showMsg('Password salah. Silakan coba lagi.');
+                setLoading(false); return;
+            }
+
+            // ✅ Login berhasil
+            localStorage.setItem('isLogin', 'true');
+            localStorage.setItem('username', user.username);
+            localStorage.setItem('userRole', 'member');
+            localStorage.setItem('userName', user.name || user.username);
+
+            showMsg('✅ Berhasil masuk! Mengalihkan...', 'success');
+
+            const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
+            localStorage.removeItem('redirectAfterLogin');
+            setTimeout(() => fadeOutAndRedirect(redirect), 800);
+
+        } catch (err) {
+            console.error(err);
+            showMsg('Terjadi kesalahan jaringan. Periksa koneksi Anda.');
+            setLoading(false);
+        }
+    }
+
+    // ============================================================
+    // MASUK SEBAGAI TAMU
+    // ============================================================
+    function loginAsTamu() {
+        localStorage.setItem('isLogin', 'true');
+        localStorage.setItem('username', 'tamu');
+        localStorage.setItem('userRole', 'tamu');
+        localStorage.setItem('userName', 'Tamu');
+        fadeOutAndRedirect('home.html');
+    }
+
+    // ============================================================
+    // LAINNYA
+    // ============================================================
+    function showRegister() {
+        fadeOutAndRedirect('register.html');
+    }
+
+    function loginWithGoogle() {
+        const redirect = localStorage.getItem('redirectAfterLogin') || 'home.html';
+        localStorage.setItem('redirectAfterLogin', redirect);
+        window.location.href = '/api/auth/google';
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') login();
+    });
 </script>
 
 </body>
