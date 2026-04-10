@@ -303,8 +303,12 @@
             el.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>Tidak ada pendaftaran yang menunggu.</p></div>`;
             return;
         }
-        el.innerHTML = list.map(reg => `
-            <div class="item-card" id="regCard_${reg.id}">
+        el.innerHTML = list.map(reg => {
+            // Gunakan username sebagai key karena kolom id mungkin belum ada
+            const key = reg.id || reg.username;
+            const safeUsername = reg.username.replace(/'/g, "\\'");
+            return `
+            <div class="item-card" id="regCard_${key}">
                 <div class="item-header">
                     <div class="item-meta">
                         <div class="item-title">
@@ -322,17 +326,17 @@
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
                         <span class="status-badge pending">⏳ Pending</span>
                         <div class="item-actions">
-                            <button class="btn-approve" onclick="approveUser('${reg.id}', '${reg.username}', '${reg.email}', '${reg.name}')">✓ Setujui</button>
-                            <button class="btn-reject"  onclick="toggleRejectNote('${reg.id}')">✕ Tolak</button>
+                            <button class="btn-approve" onclick="approveUser('${safeUsername}')">✓ Setujui</button>
+                            <button class="btn-reject"  onclick="toggleRejectNote('${key}')">✕ Tolak</button>
                         </div>
                     </div>
                 </div>
-                <div class="reject-note-wrap" id="rejectNote_${reg.id}">
-                    <textarea placeholder="Alasan penolakan (opsional, akan ditampilkan ke user)..." id="rejectText_${reg.id}"></textarea>
-                    <button class="send-reject-btn" onclick="rejectUser('${reg.id}', '${reg.username}', '${reg.email}', '${reg.name}')">Kirim Penolakan</button>
+                <div class="reject-note-wrap" id="rejectNote_${key}">
+                    <textarea placeholder="Alasan penolakan (opsional, akan ditampilkan ke user)..." id="rejectText_${key}"></textarea>
+                    <button class="send-reject-btn" onclick="rejectUser('${safeUsername}', '${key}')">Kirim Penolakan</button>
                 </div>
             </div>
-        `).join('');
+        `}).join('');
     }
 
     function renderHistory(list) {
@@ -341,7 +345,6 @@
             el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Belum ada riwayat keputusan.</p></div>`;
             return;
         }
-        // Sort by processed_at desc
         list.sort((a, b) => new Date(b.processed_at || 0) - new Date(a.processed_at || 0));
 
         el.innerHTML = list.map(reg => {
@@ -371,9 +374,9 @@
     // ============================================================
     // APPROVE / REJECT
     // ============================================================
-    async function approveUser(id, username, email, name) {
+    async function approveUser(username) {
         try {
-            await sbFetch(`pending_registrations?id=eq.${id}`, {
+            await sbFetch(`pending_registrations?username=eq.${encodeURIComponent(username)}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     status:       'approved',
@@ -387,10 +390,10 @@
         }
     }
 
-    async function rejectUser(id, username, email, name) {
-        const reason = document.getElementById('rejectText_' + id)?.value.trim() || 'Tidak memenuhi persyaratan.';
+    async function rejectUser(username, key) {
+        const reason = document.getElementById('rejectText_' + key)?.value.trim() || 'Tidak memenuhi persyaratan.';
         try {
-            await sbFetch(`pending_registrations?id=eq.${id}`, {
+            await sbFetch(`pending_registrations?username=eq.${encodeURIComponent(username)}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     status:        'rejected',
