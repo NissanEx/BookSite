@@ -75,6 +75,9 @@
         .btn-reject { padding: 10px 20px; background: transparent; color: #ef4444; border: 1.5px solid #ef4444; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
         .btn-reject:hover { background: #ef4444; color: white; }
 
+        .btn-view { padding: 10px 16px; background: transparent; color: #6b7280; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+        .btn-view:hover { border-color: #6b7280; color: #000; }
+
         /* STATUS BADGE */
         .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-badge.pending { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
@@ -144,6 +147,10 @@
         Pendaftaran
         <span class="tab-badge zero" id="badgeUsers">0</span>
     </div>
+    <div class="tab" id="tabStories" onclick="switchTab('stories')">
+        Cerita Pending
+        <span class="tab-badge zero" id="badgeStories">0</span>
+    </div>
     <div class="tab" id="tabHistory" onclick="switchTab('history')">
         Riwayat
     </div>
@@ -161,12 +168,12 @@
             <div class="stat-label">User Disetujui</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num" id="statRejectedUsers">—</div>
-            <div class="stat-label">User Ditolak</div>
+            <div class="stat-num" id="statPendingStories">—</div>
+            <div class="stat-label">Cerita Pending</div>
         </div>
         <div class="stat-card">
-            <div class="stat-num" id="statTotalUsers">—</div>
-            <div class="stat-label">Total Permohonan</div>
+            <div class="stat-num" id="statPublishedStories">—</div>
+            <div class="stat-label">Cerita Terbit</div>
         </div>
     </div>
 
@@ -177,6 +184,15 @@
             <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
         </div>
         <div id="userList"><div class="loading-state">Memuat data...</div></div>
+    </div>
+
+    <!-- TAB: STORIES PENDING -->
+    <div class="tab-panel" id="panelStories">
+        <div class="section-header">
+            <p class="section-title" style="margin-bottom:0;">Cerita Menunggu Persetujuan</p>
+            <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+        </div>
+        <div id="storyList"><div class="loading-state">Memuat data...</div></div>
     </div>
 
     <!-- TAB: HISTORY -->
@@ -260,25 +276,37 @@
     // ============================================================
     async function loadData() {
         try {
-            const all = await sbFetch('pending_registrations?order=requested_at.desc');
+            const [allUsers, allStories] = await Promise.all([
+                sbFetch('pending_registrations?order=requested_at.desc'),
+                sbFetch('stories?order=submitted_at.desc')
+            ]);
 
-            const pending  = all.filter(r => r.status === 'pending');
-            const approved = all.filter(r => r.status === 'approved');
-            const rejected = all.filter(r => r.status === 'rejected');
+            const pendingUsers   = allUsers.filter(r => r.status === 'pending');
+            const approvedUsers  = allUsers.filter(r => r.status === 'approved');
+            const pendingStories = allStories.filter(s => s.status === 'pending');
+            const publishedStories = allStories.filter(s => s.status === 'published');
 
-            // Update stats
-            document.getElementById('statPendingUsers').textContent  = pending.length;
-            document.getElementById('statApprovedUsers').textContent = approved.length;
-            document.getElementById('statRejectedUsers').textContent = rejected.length;
-            document.getElementById('statTotalUsers').textContent    = all.length;
+            // Stats
+            document.getElementById('statPendingUsers').textContent    = pendingUsers.length;
+            document.getElementById('statApprovedUsers').textContent   = approvedUsers.length;
+            document.getElementById('statPendingStories').textContent  = pendingStories.length;
+            document.getElementById('statPublishedStories').textContent = publishedStories.length;
 
-            // Update badge
-            const badge = document.getElementById('badgeUsers');
-            badge.textContent = pending.length;
-            badge.className   = 'tab-badge' + (pending.length === 0 ? ' zero' : '');
+            // Badges
+            const badgeU = document.getElementById('badgeUsers');
+            badgeU.textContent = pendingUsers.length;
+            badgeU.className   = 'tab-badge' + (pendingUsers.length === 0 ? ' zero' : '');
 
-            renderUsers(pending);
-            renderHistory([...approved, ...rejected]);
+            const badgeS = document.getElementById('badgeStories');
+            badgeS.textContent = pendingStories.length;
+            badgeS.className   = 'tab-badge' + (pendingStories.length === 0 ? ' zero' : '');
+
+            renderUsers(pendingUsers);
+            renderStories(pendingStories);
+            renderHistory(
+                allUsers.filter(r => r.status !== 'pending'),
+                allStories.filter(s => s.status !== 'pending')
+            );
 
         } catch (err) {
             console.error(err);
@@ -339,28 +367,71 @@
         `}).join('');
     }
 
-    function renderHistory(list) {
-        const el = document.getElementById('historyList');
+    function renderStories(list) {
+        const el = document.getElementById('storyList');
         if (list.length === 0) {
+            el.innerHTML = `<div class="empty-state"><div class="icon">📚</div><p>Tidak ada cerita yang menunggu persetujuan.</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(story => `
+            <div class="item-card" id="storyCard_${story.id}">
+                <div class="item-header">
+                    <div style="display:flex;gap:16px;flex:1;">
+                        ${story.cover
+                            ? `<img src="${story.cover}" style="width:52px;height:78px;object-fit:cover;border-radius:3px 6px 6px 3px;box-shadow:-2px 0 6px rgba(0,0,0,0.2);flex-shrink:0;" alt="Cover">`
+                            : `<div style="width:52px;height:78px;background:#1a1a1a;border-radius:3px 6px 6px 3px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">📖</div>`
+                        }
+                        <div class="item-meta">
+                            <div class="item-title">${story.title}</div>
+                            <div class="item-sub">
+                                ✍ ${story.author} &nbsp;·&nbsp; 
+                                📚 ${story.genre || 'Tanpa Genre'} &nbsp;·&nbsp; 
+                                🕐 ${formatDate(story.submitted_at)}
+                            </div>
+                            ${story.desc ? `<div class="item-detail">${story.desc}</div>` : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;flex-shrink:0;">
+                        <span class="status-badge pending">⏳ Pending</span>
+                        <div class="item-actions">
+                            <button class="btn-view" onclick="previewStory('${story.id}', \`${(story.title||'').replace(/`/g,'')}\`, \`${(story.author||'').replace(/`/g,'')}\`, \`${(story.genre||'').replace(/`/g,'')}\`)">👁 Preview</button>
+                            <button class="btn-approve" onclick="approveStory('${story.id}', '${(story.title||'').replace(/'/g,"\\'")}')">✓ Terbitkan</button>
+                            <button class="btn-reject"  onclick="toggleRejectNote('story_${story.id}')">✕ Tolak</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="reject-note-wrap" id="rejectNote_story_${story.id}">
+                    <textarea placeholder="Alasan penolakan untuk penulis..." id="rejectText_story_${story.id}"></textarea>
+                    <button class="send-reject-btn" onclick="rejectStory('${story.id}', '${(story.title||'').replace(/'/g,"\\'")}', 'story_${story.id}')">Kirim Penolakan</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderHistory(userHistory, storyHistory) {
+        const el = document.getElementById('historyList');
+        const items = [
+            ...userHistory.map(r  => ({ ...r,  _type: 'user',  _date: r.processed_at })),
+            ...(storyHistory || []).map(s => ({ ...s, _type: 'story', _date: s.processed_at }))
+        ].sort((a, b) => new Date(b._date || 0) - new Date(a._date || 0));
+
+        if (items.length === 0) {
             el.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>Belum ada riwayat keputusan.</p></div>`;
             return;
         }
-        list.sort((a, b) => new Date(b.processed_at || 0) - new Date(a.processed_at || 0));
 
-        el.innerHTML = list.map(reg => {
-            const isApproved = reg.status === 'approved';
+        el.innerHTML = items.map(item => {
+            const isApproved = item.status === 'approved' || item.status === 'published';
+            const label = item._type === 'user'
+                ? `👤 ${item.name} <span style="opacity:0.5;font-weight:400;">@${item.username}</span>`
+                : `📖 ${item.title} <span style="opacity:0.5;font-weight:400;">oleh ${item.author}</span>`;
             return `
                 <div class="item-card">
                     <div class="item-header">
                         <div class="item-meta">
-                            <div class="item-title">
-                                👤 ${reg.name} 
-                                <span style="font-size:13px;opacity:0.5;font-weight:400;">@${reg.username}</span>
-                            </div>
-                            <div class="item-sub">
-                                📧 ${reg.email} &nbsp;·&nbsp; Diproses: ${formatDate(reg.processed_at)}
-                            </div>
-                            ${reg.reject_reason ? `<div class="item-detail"><strong>Alasan penolakan:</strong> ${reg.reject_reason}</div>` : ''}
+                            <div class="item-title">${label}</div>
+                            <div class="item-sub">Diproses: ${formatDate(item._date)}</div>
+                            ${item.reject_reason ? `<div class="item-detail" style="margin-top:8px;"><strong>Alasan:</strong> ${item.reject_reason}</div>` : ''}
                         </div>
                         <span class="status-badge ${isApproved ? 'approved' : 'rejected'}">
                             ${isApproved ? '✓ Disetujui' : '✕ Ditolak'}
@@ -371,8 +442,70 @@
         }).join('');
     }
 
+    async function approveStory(id, title) {
+        try {
+            await sbFetch(`stories?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    status: 'published',
+                    processed_at: new Date().toISOString()
+                })
+            });
+            toast(`✅ Cerita "${title}" diterbitkan!`);
+            loadData();
+        } catch (err) {
+            toast('⚠ Gagal menerbitkan: ' + err.message);
+        }
+    }
+
+    async function rejectStory(id, title, key) {
+        const reason = document.getElementById('rejectText_' + key)?.value.trim() || 'Tidak memenuhi standar konten.';
+        try {
+            await sbFetch(`stories?id=eq.${id}`, {
+                method: 'PATCH',
+                body: JSON.stringify({
+                    status: 'rejected',
+                    reject_reason: reason,
+                    processed_at: new Date().toISOString()
+                })
+            });
+            toast(`❌ Cerita "${title}" ditolak.`);
+            loadData();
+        } catch (err) {
+            toast('⚠ Gagal menolak: ' + err.message);
+        }
+    }
+
+    function previewStory(id, title, author, genre) {
+        // Ambil konten dari Supabase lalu buka di tab baru
+        sbFetch(`stories?id=eq.${id}&select=content,title,author,genre`)
+            .then(data => {
+                if (!data || data.length === 0) return;
+                const story = data[0];
+                const w = window.open('', '_blank');
+                w.document.write(`
+                    <html><head>
+                    <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+                    <style>
+                        body { max-width: 700px; margin: 60px auto; font-family: 'Lora', serif; padding: 0 20px; }
+                        h1 { font-family: 'Playfair Display', serif; font-size: 36px; margin-bottom: 24px; }
+                        p { font-size: 16px; line-height: 1.8; margin-bottom: 1em; }
+                        .admin-label { font-size: 11px; opacity: 0.4; text-transform: uppercase; letter-spacing: 1px; }
+                    </style>
+                    </head><body>
+                    <p class="admin-label">Admin Preview</p>
+                    <h1>${story.title}</h1>
+                    <p style="opacity:0.5;font-size:13px;">oleh ${story.author} · ${story.genre || ''}</p>
+                    <hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
+                    ${story.content}
+                    </body></html>
+                `);
+            })
+            .catch(err => toast('⚠ Gagal membuka preview: ' + err.message));
+    }
+
     // ============================================================
-    // APPROVE / REJECT
+    // APPROVE / REJECT USER
     // ============================================================
     async function approveUser(username) {
         try {
