@@ -58,6 +58,7 @@
             z-index: 100; height: 100%;
         }
         .wrapper.collapsed .left { display: none; }
+        .wrapper:not(.collapsed) .left { display: flex; }
         .left h1 { font-size: 22px; font-weight: 600; margin-bottom: 24px; cursor: pointer; white-space: nowrap; }
         .nav-group { flex-grow: 1; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
         .nav-item { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.4; cursor: pointer; transition: opacity 0.2s, transform 0.2s; white-space: nowrap; }
