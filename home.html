@@ -21,14 +21,41 @@
         body.sepia-mode .left { background: #f4ecd8; }
         body.sepia-mode .search-bar { background: #ede3ca; border-color: #dcd0b3; }
 
-        .wrapper { display: flex; width: 100%; height: 100%; }
+        /* ================= GLOBAL SEARCH TOPBAR ================= */
+        .global-topbar {
+            width: 100%; height: 52px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 12px;
+            padding: 0 24px;
+            background: #fff;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+            z-index: 200;
+        }
+        body.dark-mode .global-topbar  { background: #1a1a1a; border-bottom-color: rgba(255,255,255,0.07); }
+        body.sepia-mode .global-topbar  { background: #f4ecd8; border-bottom-color: rgba(0,0,0,0.08); }
+
+        .global-topbar .search-icon { opacity: 0.35; font-size: 14px; flex-shrink: 0; color: inherit; }
+
+        .global-search-bar {
+            flex: 1; padding: 0; border: none; background: transparent;
+            font-size: 13px; font-family: 'Lora', serif; outline: none; color: inherit;
+        }
+        .global-search-bar::placeholder { opacity: 0.38; }
+
+        .global-topbar-divider { width: 1px; height: 22px; background: rgba(0,0,0,0.1); flex-shrink: 0; }
+        body.dark-mode .global-topbar-divider { background: rgba(255,255,255,0.12); }
+
+        .app-brand { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; white-space: nowrap; cursor: pointer; flex-shrink: 0; opacity: 0.85; }
+        .app-brand:hover { opacity: 1; }
+
+        .outer-wrapper { display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden; }
+        .wrapper { display: flex; flex: 1; min-height: 0; }
 
         /* ================= SIDEBAR ================= */
         .left {
             width: 220px; min-width: 220px; padding: 28px 24px;
             display: flex; flex-direction: column;
             background: #fff; border-right: 1px solid rgba(0,0,0,0.05);
-            z-index: 100;
+            z-index: 100; height: 100%;
         }
         .wrapper.collapsed .left { display: none; }
         .left h1 { font-size: 22px; font-weight: 600; margin-bottom: 24px; cursor: pointer; white-space: nowrap; }
@@ -40,30 +67,20 @@
         body.dark-mode .create-btn { background: #eee; color: #000; }
 
         /* ================= MAIN CONTENT ================= */
-        .right { flex-grow: 1; padding: 0; height: 100vh; overflow: hidden; background: #fafafa; position: relative; display: flex; flex-direction: column; }
+        .right { flex-grow: 1; padding: 0; height: 100%; overflow: hidden; background: #fafafa; position: relative; display: flex; flex-direction: column; }
         body.dark-mode .right { background: #111; }
         body.sepia-mode .right { background: #ede3ca; }
 
         .right-topbar {
-            padding: 14px 32px; display: flex; align-items: center; gap: 16px;
-            flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); min-height: 60px;
+            padding: 10px 24px; display: flex; align-items: center; gap: 16px;
+            flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); min-height: 48px;
         }
         body.dark-mode .right-topbar { border-bottom-color: rgba(255,255,255,0.06); }
 
         .toggle-btn { background: none; border: none; font-size: 20px; cursor: pointer; opacity: 0.35; transition: opacity 0.2s; color: inherit; padding: 0; flex-shrink: 0; }
         .toggle-btn:hover { opacity: 1; }
 
-        .topbar-search-wrap { flex: 1; display: flex; justify-content: center; }
-        .search-bar {
-            width: 100%; max-width: 420px; padding: 8px 16px; border-radius: 20px;
-            border: 1px solid rgba(0,0,0,0.1); background: #f3f3f3;
-            font-size: 13px; font-family: 'Lora', serif; outline: none; color: inherit;
-            transition: border-color 0.2s, background 0.2s;
-        }
-        .search-bar:focus { border-color: rgba(0,0,0,0.3); background: #fff; }
-        body.dark-mode .search-bar { background: #2a2a2a; border-color: #444; }
-        body.dark-mode .search-bar:focus { background: #222; border-color: #666; }
-        body.sepia-mode .search-bar { background: #ede3ca; border-color: #dcd0b3; }
+        .topbar-search-wrap { display: none; }
 
         .profile-pill { display: flex; align-items: center; gap: 9px; cursor: pointer; opacity: 0.75; transition: opacity 0.2s; flex-shrink: 0; white-space: nowrap; }
         .profile-pill:hover { opacity: 1; }
@@ -124,6 +141,20 @@
         .expand-btn { background: none; border: 1px solid rgba(0,0,0,0.12); padding: 5px 14px; border-radius: 4px; cursor: pointer; color: inherit; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
         body.dark-mode .expand-btn { border-color: rgba(255,255,255,0.2); }
         .expand-btn:hover { background: rgba(0,0,0,0.05); }
+
+        /* ===== BOOKMARK / PIN ===== */
+        .bookmark-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(255,255,255,0.9); border: none; border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; font-size: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s, background 0.2s; z-index: 10; opacity: 0;
+        }
+        .card:hover .bookmark-btn { opacity: 1; }
+        .bookmark-btn.pinned { opacity: 1; background: #fef3c7; }
+        .bookmark-btn:hover { transform: scale(1.15); }
+        body.dark-mode .bookmark-btn { background: rgba(40,40,40,0.9); }
+        body.dark-mode .bookmark-btn.pinned { background: #78350f; }
 
         /* ===== CARDS ===== */
         .grid-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 40px; margin-top: 30px; }
@@ -201,14 +232,28 @@
 </head>
 
 <body>
+<!-- GLOBAL SEARCH TOPBAR -->
+<div class="outer-wrapper">
+<div class="global-topbar">
+    <span class="app-brand" onclick="loadCategory('popular')">Open Your Book</span>
+    <div class="global-topbar-divider"></div>
+    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+    <input type="text" class="global-search-bar" placeholder="Cari judul, penulis, atau genre..." id="searchBar" onkeyup="filterStories()">
+    <div class="global-topbar-divider"></div>
+    <div class="profile-pill" onclick="viewProfile()">
+        <div class="avatar" id="sidebarAvatar">?</div>
+        <span class="profile-pill-name" id="sidebarName">Tamu</span>
+    </div>
+</div>
+
 <div class="wrapper collapsed" id="mainWrapper">
     <!-- SIDEBAR -->
     <div class="left">
-        <h1 onclick="loadCategory('popular')">Open Your Book</h1>
         <nav class="nav-group">
             <div class="nav-item active" id="nav-popular" onclick="loadCategory('popular')">Terpopuler</div>
             <div class="nav-item" id="nav-most-read" onclick="loadCategory('most-read')">Banyak Dibaca</div>
             <div class="nav-item" id="nav-recent" onclick="loadCategory('recent')">Baru Diperbarui</div>
+            <div class="nav-item" id="nav-bookmarks" onclick="loadBookmarks()">📌 Ditandai</div>
             <button class="create-btn" onclick="goCreate()">+ Buat Cerita</button>
         </nav>
     </div>
@@ -236,14 +281,9 @@
                 </div>
             </div>
 
-            <div class="topbar-search-wrap" id="topbarSearchWrap">
-                <input type="text" class="search-bar" placeholder="Cari cerita..." id="searchBar" onkeyup="filterStories()">
-            </div>
+            <div class="topbar-search-wrap" id="topbarSearchWrap"></div>
 
-            <div class="profile-pill" onclick="viewProfile()">
-                <div class="avatar" id="sidebarAvatar">?</div>
-                <span class="profile-pill-name" id="sidebarName">Tamu</span>
-            </div>
+            <!-- profile pill moved to global topbar -->
         </div>
 
         <div class="read-progress-wrap" id="readProgressWrap">
@@ -255,6 +295,8 @@
         </div>
     </div>
 </div>
+
+</div><!-- /outer-wrapper -->
 
 <!-- FULLSCREEN OVERLAY -->
 <div id="paperOverlay" onclick="handleOverlayClick(event)">
@@ -471,10 +513,13 @@
                         ? '<p style="opacity:0.4;text-align:center;padding:40px;grid-column:1/-1;">Belum ada cerita yang diterbitkan.</p>'
                         : display.map(s => `
                             <div class="card" onclick="loadStory('${s.id}')">
-                                <div class="icon-box">
+                                <div class="icon-box" style="position:relative;">
                                     ${s.cover
                                         ? `<img src="${s.cover}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
                                         : `<i class="fa-solid ${s.icon || 'fa-book'}"></i>`}
+                                    <button class="bookmark-btn ${isBookmarked(s.id)?'pinned':''}" onclick="toggleBookmark(event,'${s.id}','${escAttr(s.title)}','${escAttr(s.author)}')" title="${isBookmarked(s.id)?'Hapus bookmark':'Bookmark cerita'}">
+                                        ${isBookmarked(s.id)?'📌':'🔖'}
+                                    </button>
                                 </div>
                                 <h3>${s.title}</h3>
                                 <p style="font-size:13px;opacity:0.5;">${s.author}</p>
@@ -559,6 +604,14 @@
                                 <span class="rating-count">(${ratings.length} ulasan)</span>
                             </div>` : ''}
                             ${(story.tags||'').split(',').filter(Boolean).map(t=>`<span class="meta-badge">${t.trim()}</span>`).join('')}
+                            <div style="margin-left:auto;">
+                                <div style="font-size:10px;font-weight:700;letter-spacing:1px;opacity:0.5;margin-bottom:6px;">SIMPAN</div>
+                                <button id="readerBookmarkBtn" onclick="toggleReaderBookmark('${id}','${escAttr(story.title)}','${escAttr(story.author)}')"
+                                    style="display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1.5px solid ${isBookmarked(id)?'#f59e0b':'rgba(0,0,0,0.12)'};background:${isBookmarked(id)?'#fef3c7':'transparent'};cursor:pointer;font-size:13px;font-weight:600;color:inherit;transition:0.2s;">
+                                    <span id="readerBookmarkIcon">${isBookmarked(id)?'📌':'🔖'}</span>
+                                    <span id="readerBookmarkLabel">${isBookmarked(id)?'Ditandai':'Tandai'}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="comment-section">
                             <h3>💬 Komentar</h3>
@@ -647,7 +700,18 @@
             </div>`;
     }
 
-    function editStory(id) { localStorage.setItem('editingStoryId', String(id)); window.location.href = 'CreateBook.html'; }
+    async function editStory(id) {
+        toast('Memuat data cerita...');
+        try {
+            const data = await sbGet('stories', `id=eq.${id}&select=*`);
+            if (!Array.isArray(data) || data.length === 0) { toast('Cerita tidak ditemukan.'); return; }
+            const story = data[0];
+            // Simpan semua data cerita ke localStorage agar CreateBook.html bisa load ulang
+            localStorage.setItem('editingStoryId', String(story.id));
+            localStorage.setItem('editingStoryData', JSON.stringify(story));
+            window.location.href = 'CreateBook.html';
+        } catch (e) { toast('Gagal memuat cerita untuk diedit.'); }
+    }
 
     async function deleteStory(id) {
         if (!confirm('Hapus cerita ini? Tindakan tidak bisa dibatalkan.')) return;
@@ -669,6 +733,119 @@
         t.textContent = msg;
         t.style.display = 'block';
         setTimeout(() => { t.style.display = 'none'; }, 3000);
+    }
+
+    function toggleReaderBookmark(id, title, author) {
+        const bm = getBookmarks();
+        const idx = bm.findIndex(b => String(b.id) === String(id));
+        const btn = document.getElementById('readerBookmarkBtn');
+        const icon = document.getElementById('readerBookmarkIcon');
+        const label = document.getElementById('readerBookmarkLabel');
+        if (idx >= 0) {
+            bm.splice(idx, 1);
+            if (btn) { btn.style.borderColor = 'rgba(0,0,0,0.12)'; btn.style.background = 'transparent'; }
+            if (icon) icon.textContent = '🔖';
+            if (label) label.textContent = 'Tandai';
+            toast('Bookmark dihapus.');
+        } else {
+            bm.unshift({ id, title, author, saved_at: new Date().toISOString() });
+            if (btn) { btn.style.borderColor = '#f59e0b'; btn.style.background = '#fef3c7'; }
+            if (icon) icon.textContent = '📌';
+            if (label) label.textContent = 'Ditandai';
+            toast('📌 Cerita disimpan ke Ditandai!');
+        }
+        saveBookmarks(bm);
+    }
+
+    // ===== BOOKMARK / PIN =====
+    function getBookmarks() {
+        try { return JSON.parse(localStorage.getItem('bookmarks') || '[]'); } catch { return []; }
+    }
+    function saveBookmarks(bm) { localStorage.setItem('bookmarks', JSON.stringify(bm)); }
+    function isBookmarked(id) { return getBookmarks().some(b => String(b.id) === String(id)); }
+    function escAttr(s) { return (s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+    function toggleBookmark(event, id, title, author) {
+        event.stopPropagation();
+        const bm = getBookmarks();
+        const idx = bm.findIndex(b => String(b.id) === String(id));
+        const btn = event.currentTarget;
+        if (idx >= 0) {
+            bm.splice(idx, 1);
+            btn.textContent = '🔖';
+            btn.classList.remove('pinned');
+            btn.title = 'Bookmark cerita';
+            toast('Bookmark dihapus.');
+        } else {
+            bm.unshift({ id, title, author, saved_at: new Date().toISOString() });
+            btn.textContent = '📌';
+            btn.classList.add('pinned');
+            btn.title = 'Hapus bookmark';
+            toast('📌 Cerita disimpan ke Ditandai!');
+        }
+        saveBookmarks(bm);
+    }
+
+    async function loadBookmarks() {
+        setReaderMode(false);
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const navEl = document.getElementById('nav-bookmarks');
+        if (navEl) navEl.classList.add('active');
+        currentCategory = 'bookmarks';
+
+        const content = document.getElementById('dynamic-content');
+        const bm = getBookmarks();
+
+        if (bm.length === 0) {
+            content.innerHTML = `
+                <div style="animation:fadeIn 0.5s ease;padding-top:60px;text-align:center;">
+                    <div style="font-size:48px;margin-bottom:20px;">📌</div>
+                    <h2 style="margin-bottom:10px;">Belum ada cerita yang ditandai</h2>
+                    <p style="opacity:0.5;font-size:14px;">Klik ikon 🔖 di cover cerita untuk menyimpannya di sini.</p>
+                </div>`;
+            return;
+        }
+
+        // Fetch full story data for all bookmarked IDs
+        const ids = bm.map(b => b.id).join(',');
+        let stories = [];
+        try {
+            const data = await sbGet('stories', `id=in.(${ids})&status=eq.published&select=*`);
+            stories = Array.isArray(data) ? data : [];
+        } catch (e) { stories = []; }
+
+        // Sort by bookmark order
+        const sorted = bm.map(b => stories.find(s => String(s.id) === String(b.id))).filter(Boolean);
+
+        content.innerHTML = `
+            <div style="animation:fadeIn 0.5s ease;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <h2>📌 Ditandai</h2>
+                    <button onclick="clearAllBookmarks()" style="padding:6px 14px;background:transparent;border:1px solid rgba(0,0,0,0.15);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:inherit;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Hapus Semua</button>
+                </div>
+                <p style="font-size:14px;opacity:0.5;margin-bottom:20px;">${sorted.length} cerita tersimpan</p>
+                <div class="grid-list">
+                    ${sorted.map(s => `
+                        <div class="card" onclick="loadStory('${s.id}')">
+                            <div class="icon-box" style="position:relative;">
+                                ${s.cover
+                                    ? `<img src="${s.cover}" alt="${s.title}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`
+                                    : `<i class="fa-solid ${s.icon || 'fa-book'}"></i>`}
+                                <button class="bookmark-btn pinned" onclick="toggleBookmark(event,'${s.id}','${escAttr(s.title)}','${escAttr(s.author)}')" title="Hapus bookmark">📌</button>
+                            </div>
+                            <h3>${s.title}</h3>
+                            <p style="font-size:13px;opacity:0.5;">${s.author}</p>
+                            ${s.genre ? `<p style="font-size:10px;opacity:0.4;text-transform:uppercase;letter-spacing:1px;margin-top:4px;">${s.genre}</p>` : ''}
+                        </div>`).join('')}
+                </div>
+            </div>`;
+    }
+
+    function clearAllBookmarks() {
+        if (!confirm('Hapus semua bookmark? Tindakan ini tidak bisa dibatalkan.')) return;
+        saveBookmarks([]);
+        toast('Semua bookmark dihapus.');
+        loadBookmarks();
     }
 
     function filterStories() {
