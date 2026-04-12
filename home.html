@@ -641,7 +641,7 @@
             <div class="nav-item active" id="nav-popular" onclick="loadCategory('popular')">Terpopuler</div>
             <div class="nav-item" id="nav-most-read" onclick="loadCategory('most-read')">Banyak Dibaca</div>
             <div class="nav-item" id="nav-recent" onclick="loadCategory('recent')">Baru Diperbarui</div>
-            <div class="nav-item" id="nav-bookmarks" onclick="loadBookmarks()">📌 Ditandai</div>
+            <div class="nav-item" id="nav-bookmarks" onclick="loadBookmarks()">Ditandai</div>
             <button class="create-btn" onclick="goCreate()">+ Buat Cerita</button>
         </nav>
     </div>
@@ -907,8 +907,8 @@
     function toggleSidebar() {
         const wrapper = document.getElementById('mainWrapper');
         wrapper.classList.toggle('collapsed');
-        // On mobile, close sidebar when backdrop is tapped
-        if (!wrapper.classList.contains('collapsed')) {
+        // Listener tutup drawer hanya untuk mobile
+        if (isMobile() && !wrapper.classList.contains('collapsed')) {
             wrapper.addEventListener('click', function closeMobileDrawer(e) {
                 const left = wrapper.querySelector('.left');
                 if (left && !left.contains(e.target)) {
@@ -2063,7 +2063,7 @@
 
             updateTopbar();
             closeAccountSettings();
-            toast('✅ Profil berhasil diperbarui!');
+            toast('Profil berhasil diperbarui!');
 
             // Refresh halaman profil jika sedang terbuka
             const content = document.getElementById('dynamic-content');
@@ -2091,11 +2091,7 @@
 
     function initMobileNav() {
         const nav = document.getElementById('mobileBottomNav');
-        if (window.innerWidth <= 640) {
-            nav.style.display = 'flex';
-        } else {
-            nav.style.display = 'none';
-        }
+        nav.style.display = window.innerWidth <= 640 ? 'flex' : 'none';
     }
     window.addEventListener('resize', initMobileNav);
 
