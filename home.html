@@ -288,6 +288,129 @@
         .comment-bubble .c-time { font-size: 11px; opacity: 0.4; margin-top: 6px; }
         .no-comments { text-align: center; opacity: 0.35; font-size: 14px; padding: 24px 0; }
 
+        /* ================= DISKUSI ================= */
+        .diskusi-wrap { max-width: 760px; margin: 0 auto; padding: 0 0 60px; animation: fadeIn 0.4s ease; }
+        .diskusi-header { margin-bottom: 28px; }
+        .diskusi-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .diskusi-header p { font-size: 13px; opacity: 0.45; }
+
+        .diskusi-form-card {
+            border: 1.5px solid rgba(0,0,0,0.08); border-radius: 14px;
+            padding: 18px 20px; margin-bottom: 28px;
+            background: rgba(0,0,0,0.02);
+        }
+        body.dark-mode .diskusi-form-card { border-color: rgba(255,255,255,0.09); background: rgba(255,255,255,0.03); }
+        body.sepia-mode .diskusi-form-card { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); }
+
+        .diskusi-form-title {
+            font-size: 13px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; opacity: 0.5; margin-bottom: 12px;
+        }
+        .diskusi-input {
+            width: 100%; padding: 11px 14px; border: 1.5px solid rgba(0,0,0,0.1);
+            border-radius: 10px; font-size: 14px; font-family: 'Lora', serif;
+            background: transparent; color: inherit; outline: none;
+            resize: none; min-height: 80px; transition: border-color 0.2s; margin-bottom: 10px;
+        }
+        body.dark-mode .diskusi-input { border-color: rgba(255,255,255,0.1); }
+        .diskusi-input:focus { border-color: #000; }
+        body.dark-mode .diskusi-input:focus { border-color: #fff; }
+        .diskusi-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .diskusi-form-row { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+        .diskusi-char { font-size: 11px; opacity: 0.35; }
+        .diskusi-submit {
+            padding: 8px 20px; background: #000; color: #fff; border: none;
+            border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer;
+            font-family: 'Lora', serif; letter-spacing: 0.5px; transition: opacity 0.2s;
+        }
+        body.dark-mode .diskusi-submit { background: #eee; color: #000; }
+        .diskusi-submit:hover { opacity: 0.75; }
+        .diskusi-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .diskusi-filters { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .diskusi-filter-btn {
+            padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px; cursor: pointer;
+            border: 1.5px solid rgba(0,0,0,0.1); background: transparent; color: inherit;
+            font-family: 'Lora', serif; transition: all 0.18s; opacity: 0.55;
+        }
+        .diskusi-filter-btn.active, .diskusi-filter-btn:hover { opacity: 1; background: #000; color: #fff; border-color: #000; }
+        body.dark-mode .diskusi-filter-btn.active, body.dark-mode .diskusi-filter-btn:hover { background: #eee; color: #000; border-color: #eee; }
+
+        .diskusi-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .diskusi-card {
+            border: 1.5px solid rgba(0,0,0,0.07); border-radius: 14px; padding: 18px 20px;
+            background: #fff; transition: border-color 0.2s, box-shadow 0.2s; cursor: pointer;
+        }
+        body.dark-mode .diskusi-card { background: #1e1e1e; border-color: rgba(255,255,255,0.08); }
+        body.sepia-mode .diskusi-card { background: #f9f3e5; border-color: rgba(0,0,0,0.08); }
+        .diskusi-card:hover { border-color: rgba(0,0,0,0.2); }
+        body.dark-mode .diskusi-card:hover { border-color: rgba(255,255,255,0.2); }
+
+        .diskusi-card-top { display: flex; align-items: flex-start; gap: 12px; }
+        .diskusi-avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            background: #000; color: #fff; display: flex; align-items: center;
+            justify-content: center; font-weight: 700; font-size: 13px;
+        }
+        body.dark-mode .diskusi-avatar { background: #e0e0e0; color: #000; }
+        .diskusi-meta { flex: 1; min-width: 0; }
+        .diskusi-author { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+        .diskusi-time { font-size: 11px; opacity: 0.4; }
+        .diskusi-body { font-size: 14px; line-height: 1.65; margin: 10px 0 12px; word-break: break-word; }
+        .diskusi-actions { display: flex; gap: 16px; align-items: center; }
+        .diskusi-action-btn {
+            display: flex; align-items: center; gap: 5px; font-size: 12px;
+            opacity: 0.45; cursor: pointer; background: none; border: none;
+            color: inherit; font-family: 'Lora', serif; transition: opacity 0.18s;
+            padding: 0;
+        }
+        .diskusi-action-btn:hover { opacity: 1; }
+        .diskusi-action-btn.liked { opacity: 1; color: #e63946; }
+        .diskusi-action-btn i { font-size: 13px; }
+
+        .diskusi-replies { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(0,0,0,0.06); display: none; flex-direction: column; gap: 12px; }
+        body.dark-mode .diskusi-replies { border-top-color: rgba(255,255,255,0.07); }
+        .diskusi-replies.open { display: flex; }
+        .diskusi-reply-item { display: flex; gap: 10px; }
+        .diskusi-reply-avatar { width: 28px; height: 28px; border-radius: 50%; background: #000; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        body.dark-mode .diskusi-reply-avatar { background: #ccc; color: #000; }
+        .diskusi-reply-bubble { flex: 1; background: rgba(0,0,0,0.03); border-radius: 10px; padding: 10px 14px; font-size: 13px; line-height: 1.6; }
+        body.dark-mode .diskusi-reply-bubble { background: rgba(255,255,255,0.05); }
+        .diskusi-reply-name { font-weight: 700; font-size: 12px; margin-bottom: 3px; }
+        .diskusi-reply-text { opacity: 0.85; }
+        .diskusi-reply-time { font-size: 10px; opacity: 0.35; margin-top: 4px; }
+
+        .diskusi-reply-form { display: flex; gap: 8px; margin-top: 12px; align-items: flex-start; }
+        .diskusi-reply-input {
+            flex: 1; padding: 8px 12px; border: 1.5px solid rgba(0,0,0,0.1);
+            border-radius: 8px; font-size: 13px; font-family: 'Lora', serif;
+            background: transparent; color: inherit; outline: none; resize: none;
+            min-height: 38px; transition: border-color 0.2s;
+        }
+        body.dark-mode .diskusi-reply-input { border-color: rgba(255,255,255,0.1); }
+        .diskusi-reply-input:focus { border-color: #000; }
+        body.dark-mode .diskusi-reply-input:focus { border-color: #fff; }
+        .diskusi-reply-send {
+            padding: 8px 14px; background: #000; color: #fff; border: none;
+            border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+            font-family: 'Lora', serif; transition: opacity 0.2s; flex-shrink: 0; margin-top: 1px;
+        }
+        body.dark-mode .diskusi-reply-send { background: #eee; color: #000; }
+        .diskusi-reply-send:hover { opacity: 0.75; }
+
+        .diskusi-empty { text-align: center; padding: 60px 20px; opacity: 0.35; font-size: 14px; }
+        .diskusi-loading { text-align: center; padding: 60px; opacity: 0.4; font-size: 14px; }
+
+        /* Mobile diskusi */
+        @media (max-width: 640px) {
+            .diskusi-wrap { padding: 0 0 40px; }
+            .diskusi-card { padding: 14px 16px; }
+            .diskusi-form-card { padding: 14px 16px; }
+        }
+
         /* ===== STORY TEXT ===== */
         #story-text { word-wrap: break-word; }
         #story-text .paper-title { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; margin-bottom: 30px; line-height: 1.2; }
@@ -643,6 +766,7 @@
             <div class="nav-item" id="nav-most-read" onclick="loadCategory('most-read')">Banyak Dibaca</div>
             <div class="nav-item" id="nav-recent" onclick="loadCategory('recent')">Baru Diperbarui</div>
             <div class="nav-item" id="nav-bookmarks" onclick="loadBookmarks()">Ditandai</div>
+            <div class="nav-item" id="nav-diskusi" onclick="loadDiskusi()">Ruang Diskusi</div>
             <div class="nav-item" id="nav-ai" onclick="openAIChat()">✨ Tanya AI</div>
             <button class="create-btn" onclick="goCreate()">+ Buat Cerita</button>
         </nav>
@@ -701,25 +825,21 @@
         <i class="fa-solid fa-fire"></i>
         <span>Populer</span>
     </button>
-    <button class="mbn-item" id="mbn-recent" onclick="loadCategory('recent');setMbnActive('mbn-recent')">
-        <i class="fa-solid fa-clock-rotate-left"></i>
-        <span>Terbaru</span>
+    <button class="mbn-item" id="mbn-bookmarks" onclick="loadBookmarks();setMbnActive('mbn-bookmarks')">
+        <i class="fa-solid fa-bookmark"></i>
+        <span>Ditandai</span>
     </button>
     <button class="mbn-item mbn-create" onclick="goCreate()">
         <i class="fa-solid fa-pen-nib"></i>
         <span>Buat</span>
     </button>
-    <button class="mbn-item" id="mbn-bookmarks" onclick="loadBookmarks();setMbnActive('mbn-bookmarks')">
-        <i class="fa-solid fa-bookmark"></i>
-        <span>Ditandai</span>
+    <button class="mbn-item" id="mbn-diskusi" onclick="loadDiskusi();setMbnActive('mbn-diskusi')">
+        <i class="fa-solid fa-comments"></i>
+        <span>Diskusi</span>
     </button>
     <button class="mbn-item" id="mbn-ai" onclick="openAIChat();setMbnActive('mbn-ai')">
         <i class="fa-solid fa-wand-magic-sparkles"></i>
         <span>AI</span>
-    </button>
-    <button class="mbn-item" id="mbn-profile" onclick="viewProfile();setMbnActive('mbn-profile')">
-        <i class="fa-solid fa-user"></i>
-        <span>Profil</span>
     </button>
 </nav>
 
@@ -2269,6 +2389,265 @@
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const el = document.getElementById(id);
         if (el) el.classList.add('active');
+    }
+
+    // ===== RUANG DISKUSI =====
+    async function loadDiskusi() {
+        setReaderMode(false);
+        setNavActive('nav-diskusi');
+        const content = document.getElementById('dynamic-content');
+        content.innerHTML = `<div class="diskusi-loading">Memuat diskusi...</div>`;
+
+        let posts = [];
+        try {
+            const data = await sbGet('diskusi', 'order=created_at.desc&select=*');
+            posts = Array.isArray(data) ? data : [];
+        } catch(e) { posts = []; }
+
+        const username = getUsername();
+        const isLoggedIn_ = isLoggedIn();
+
+        content.innerHTML = `
+        <div class="diskusi-wrap">
+            <div class="diskusi-header">
+                <h2>Ruang Diskusi</h2>
+                <p>Bagikan pendapat, rekomendasi, atau pertanyaan seputar cerita & buku.</p>
+            </div>
+
+            ${isLoggedIn_ ? `
+            <div class="diskusi-form-card">
+                <div class="diskusi-form-title">Mulai diskusi baru</div>
+                <textarea class="diskusi-input" id="diskusiNewInput" placeholder="Apa yang ingin kamu diskusikan?" maxlength="500" oninput="updateDiskusiChar(this)"></textarea>
+                <div class="diskusi-form-row">
+                    <span class="diskusi-char" id="diskusiCharCount">0 / 500</span>
+                    <button class="diskusi-submit" onclick="submitDiskusi()">Kirim</button>
+                </div>
+            </div>
+            ` : `<div style="padding:14px 18px;border-radius:12px;background:rgba(0,0,0,0.03);font-size:13px;opacity:0.6;margin-bottom:24px;text-align:center;">
+                <a href="login.html" style="color:inherit;font-weight:700;text-decoration:underline;">Login</a> untuk ikut berdiskusi.
+            </div>`}
+
+            <div class="diskusi-filters">
+                <button class="diskusi-filter-btn active" id="df-terbaru" onclick="filterDiskusi('terbaru',this)">Terbaru</button>
+                <button class="diskusi-filter-btn" id="df-populer" onclick="filterDiskusi('populer',this)">Terpopuler</button>
+            </div>
+
+            <div class="diskusi-list" id="diskusiList">
+                ${renderDiskusiCards(posts, username)}
+            </div>
+        </div>`;
+    }
+
+    function renderDiskusiCards(posts, username) {
+        if (!posts.length) return `<div class="diskusi-empty">Belum ada diskusi. Jadilah yang pertama! 💬</div>`;
+        return posts.map(p => {
+            const initial = (p.username || '?')[0].toUpperCase();
+            const liked = (p.liked_by || []).includes(username);
+            const likeCount = (p.liked_by || []).length;
+            const replyCount = p.reply_count || 0;
+            return `
+            <div class="diskusi-card" id="dc-${p.id}">
+                <div class="diskusi-card-top">
+                    <div class="diskusi-avatar">${initial}</div>
+                    <div class="diskusi-meta">
+                        <div class="diskusi-author">${escHtml(p.username || 'Anonim')}</div>
+                        <div class="diskusi-time">${timeAgo(p.created_at)}</div>
+                    </div>
+                </div>
+                <div class="diskusi-body">${escHtml(p.body)}</div>
+                <div class="diskusi-actions">
+                    <button class="diskusi-action-btn ${liked ? 'liked' : ''}" id="like-btn-${p.id}" onclick="toggleDiskusiLike('${p.id}','${username}')">
+                        <i class="fa-${liked ? 'solid' : 'regular'} fa-heart"></i>
+                        <span id="like-count-${p.id}">${likeCount}</span>
+                    </button>
+                    <button class="diskusi-action-btn" onclick="toggleDiskusiReplies('${p.id}')">
+                        <i class="fa-regular fa-comment"></i>
+                        <span>${replyCount} Balas</span>
+                    </button>
+                    ${p.username === username ? `<button class="diskusi-action-btn" onclick="deleteDiskusi('${p.id}')"><i class="fa-regular fa-trash-can"></i></button>` : ''}
+                </div>
+                <div class="diskusi-replies" id="replies-${p.id}">
+                    <div class="diskusi-reply-list" id="reply-list-${p.id}">
+                        <div style="font-size:12px;opacity:0.4;text-align:center;padding:8px;">Memuat balasan...</div>
+                    </div>
+                    ${isLoggedIn() ? `
+                    <div class="diskusi-reply-form">
+                        <textarea class="diskusi-reply-input" id="reply-input-${p.id}" placeholder="Tulis balasan..." rows="1"
+                            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"
+                            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitReply('${p.id}');}"></textarea>
+                        <button class="diskusi-reply-send" onclick="submitReply('${p.id}')">Kirim</button>
+                    </div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function updateDiskusiChar(el) {
+        document.getElementById('diskusiCharCount').textContent = el.value.length + ' / 500';
+    }
+
+    async function submitDiskusi() {
+        if (!isLoggedIn()) { toast('Login dulu ya.'); return; }
+        const input = document.getElementById('diskusiNewInput');
+        const body = input.value.trim();
+        if (!body) return;
+        if (body.length > 500) { toast('Maksimal 500 karakter.'); return; }
+
+        const btn = document.querySelector('.diskusi-submit');
+        btn.disabled = true; btn.textContent = '...';
+
+        try {
+            await sbPost('diskusi', {
+                username: getUsername(),
+                body,
+                liked_by: [],
+                reply_count: 0,
+                created_at: new Date().toISOString()
+            }, 'return=minimal');
+            toast('Diskusi terkirim!');
+            loadDiskusi();
+        } catch(e) {
+            toast('Gagal mengirim diskusi.');
+        }
+        btn.disabled = false; btn.textContent = 'Kirim';
+    }
+
+    async function toggleDiskusiLike(postId, username) {
+        if (!isLoggedIn()) { toast('Login dulu untuk memberi suka.'); return; }
+        try {
+            const data = await sbGet('diskusi', `id=eq.${postId}&select=liked_by`);
+            if (!Array.isArray(data) || !data[0]) return;
+            let liked_by = data[0].liked_by || [];
+            const already = liked_by.includes(username);
+            liked_by = already ? liked_by.filter(u => u !== username) : [...liked_by, username];
+
+            await fetch(`${SUPABASE_URL}/rest/v1/diskusi?id=eq.${postId}`, {
+                method: 'PATCH', headers: SB_HJ,
+                body: JSON.stringify({ liked_by })
+            });
+
+            const btn = document.getElementById(`like-btn-${postId}`);
+            const cnt = document.getElementById(`like-count-${postId}`);
+            if (btn && cnt) {
+                btn.classList.toggle('liked', !already);
+                btn.querySelector('i').className = `fa-${!already ? 'solid' : 'regular'} fa-heart`;
+                cnt.textContent = liked_by.length;
+            }
+        } catch(e) { toast('Gagal memperbarui suka.'); }
+    }
+
+    async function toggleDiskusiReplies(postId) {
+        const repliesEl = document.getElementById(`replies-${postId}`);
+        if (!repliesEl) return;
+        const isOpen = repliesEl.classList.contains('open');
+        if (isOpen) { repliesEl.classList.remove('open'); return; }
+
+        repliesEl.classList.add('open');
+        const listEl = document.getElementById(`reply-list-${postId}`);
+        try {
+            const data = await sbGet('diskusi_replies', `post_id=eq.${postId}&order=created_at.asc&select=*`);
+            const replies = Array.isArray(data) ? data : [];
+            if (!replies.length) {
+                listEl.innerHTML = `<div style="font-size:12px;opacity:0.35;text-align:center;padding:6px;">Belum ada balasan.</div>`;
+                return;
+            }
+            listEl.innerHTML = replies.map(r => `
+                <div class="diskusi-reply-item">
+                    <div class="diskusi-reply-avatar">${(r.username||'?')[0].toUpperCase()}</div>
+                    <div class="diskusi-reply-bubble">
+                        <div class="diskusi-reply-name">${escHtml(r.username||'Anonim')}</div>
+                        <div class="diskusi-reply-text">${escHtml(r.body)}</div>
+                        <div class="diskusi-reply-time">${timeAgo(r.created_at)}</div>
+                    </div>
+                </div>`).join('');
+        } catch(e) {
+            listEl.innerHTML = `<div style="font-size:12px;opacity:0.35;text-align:center;">Gagal memuat balasan.</div>`;
+        }
+    }
+
+    async function submitReply(postId) {
+        if (!isLoggedIn()) { toast('Login dulu ya.'); return; }
+        const input = document.getElementById(`reply-input-${postId}`);
+        const body = input.value.trim();
+        if (!body) return;
+
+        try {
+            await sbPost('diskusi_replies', {
+                post_id: postId,
+                username: getUsername(),
+                body,
+                created_at: new Date().toISOString()
+            }, 'return=minimal');
+
+            // Update reply_count
+            const data = await sbGet('diskusi', `id=eq.${postId}&select=reply_count`);
+            const rc = (data[0]?.reply_count || 0) + 1;
+            await fetch(`${SUPABASE_URL}/rest/v1/diskusi?id=eq.${postId}`, {
+                method: 'PATCH', headers: SB_HJ,
+                body: JSON.stringify({ reply_count: rc })
+            });
+
+            input.value = ''; input.style.height = 'auto';
+            // Reload replies
+            const listEl = document.getElementById(`reply-list-${postId}`);
+            if (listEl) {
+                const newData = await sbGet('diskusi_replies', `post_id=eq.${postId}&order=created_at.asc&select=*`);
+                const replies = Array.isArray(newData) ? newData : [];
+                listEl.innerHTML = replies.map(r => `
+                    <div class="diskusi-reply-item">
+                        <div class="diskusi-reply-avatar">${(r.username||'?')[0].toUpperCase()}</div>
+                        <div class="diskusi-reply-bubble">
+                            <div class="diskusi-reply-name">${escHtml(r.username||'Anonim')}</div>
+                            <div class="diskusi-reply-text">${escHtml(r.body)}</div>
+                            <div class="diskusi-reply-time">${timeAgo(r.created_at)}</div>
+                        </div>
+                    </div>`).join('');
+            }
+            toast('Balasan terkirim!');
+        } catch(e) { toast('Gagal mengirim balasan.'); }
+    }
+
+    async function deleteDiskusi(postId) {
+        if (!confirm('Hapus diskusi ini?')) return;
+        try {
+            await fetch(`${SUPABASE_URL}/rest/v1/diskusi?id=eq.${postId}`, {
+                method: 'DELETE', headers: SB_H
+            });
+            const card = document.getElementById(`dc-${postId}`);
+            if (card) card.remove();
+            toast('Diskusi dihapus.');
+        } catch(e) { toast('Gagal menghapus.'); }
+    }
+
+    async function filterDiskusi(mode, btn) {
+        document.querySelectorAll('.diskusi-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const list = document.getElementById('diskusiList');
+        if (!list) return;
+        list.innerHTML = `<div class="diskusi-loading" style="padding:30px;">Memuat...</div>`;
+
+        let posts = [];
+        try {
+            const q = mode === 'populer'
+                ? 'order=reply_count.desc&select=*'
+                : 'order=created_at.desc&select=*';
+            const data = await sbGet('diskusi', q);
+            posts = Array.isArray(data) ? data : [];
+        } catch(e) { posts = []; }
+        list.innerHTML = renderDiskusiCards(posts, getUsername());
+    }
+
+    function timeAgo(iso) {
+        if (!iso) return '';
+        const diff = Date.now() - new Date(iso).getTime();
+        const m = Math.floor(diff / 60000);
+        if (m < 1) return 'Baru saja';
+        if (m < 60) return m + ' mnt lalu';
+        const h = Math.floor(m / 60);
+        if (h < 24) return h + ' jam lalu';
+        const d = Math.floor(h / 24);
+        if (d < 30) return d + ' hari lalu';
+        return new Date(iso).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
     }
 
     window.onload = () => { initProfile(); loadCategory('popular'); initMobileNav(); };
