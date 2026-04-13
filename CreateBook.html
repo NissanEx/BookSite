@@ -6,6 +6,7 @@
     <title>Buat Cerita - Open Your Book</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Playfair+Display:wght@700&family=Roboto+Mono&family=Cinzel:wght@700&family=Bebas+Neue&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root {
             --bg-color: #f3f4f6;
@@ -227,6 +228,22 @@
             </select>
         </div>
         <div class="tool-group">
+            <select id="fontSize" onchange="applyFontSize(this.value)" title="Ukuran Huruf">
+                <option value="">Ukuran</option>
+                <option value="12">12px</option>
+                <option value="14">14px</option>
+                <option value="16">16px</option>
+                <option value="18">18px</option>
+                <option value="20">20px</option>
+                <option value="24">24px</option>
+                <option value="28">28px</option>
+                <option value="32">32px</option>
+                <option value="36">36px</option>
+                <option value="42">42px</option>
+                <option value="48">48px</option>
+            </select>
+        </div>
+        <div class="tool-group">
             <button class="tool-btn" onclick="format('bold')"><i data-lucide="bold"></i></button>
             <button class="tool-btn" onclick="format('italic')"><i data-lucide="italic"></i></button>
             <button class="tool-btn" onclick="format('underline')"><i data-lucide="underline"></i></button>
@@ -244,6 +261,10 @@
         <div class="tool-group">
             <button class="tool-btn" onclick="document.getElementById('imgInput').click()"><i data-lucide="image"></i> Gambar</button>
             <input type="file" id="imgInput" hidden accept="image/*" onchange="insertFreeImage(this)">
+        </div>
+        <div class="tool-group">
+            <button class="tool-btn" onclick="document.getElementById('docxInput').click()" title="Import file Word (.docx)"><i data-lucide="file-text"></i> Import DOCX</button>
+            <input type="file" id="docxInput" hidden accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="importDocx(this)">
         </div>
     </div>
 </div>
@@ -671,6 +692,102 @@ function removeCover(){
    EDITOR FUNCTIONS
 ════════════════════════════════ */
 function format(cmd, val=null){ document.execCommand(cmd,false,val); }
+
+/* ════════════════════════════════
+   FONT SIZE
+════════════════════════════════ */
+function applyFontSize(px){
+    if(!px) return;
+    const sel = window.getSelection();
+    if(!sel || sel.isCollapsed){
+        // Terapkan ke kursor (karakter berikutnya)
+        document.execCommand('styleWithCSS', false, true);
+        document.execCommand('fontSize', false, '7'); // dummy size
+        // Ganti semua <font size="7"> menjadi span dengan px
+        const content = document.getElementById('storyContent');
+        content.querySelectorAll('font[size="7"]').forEach(el => {
+            const span = document.createElement('span');
+            span.style.fontSize = px + 'px';
+            span.innerHTML = el.innerHTML;
+            el.replaceWith(span);
+        });
+        return;
+    }
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('fontSize', false, '7');
+    const content = document.getElementById('storyContent');
+    content.querySelectorAll('font[size="7"]').forEach(el => {
+        const span = document.createElement('span');
+        span.style.fontSize = px + 'px';
+        span.innerHTML = el.innerHTML;
+        el.replaceWith(span);
+    });
+    // Reset selector
+    document.getElementById('fontSize').value = '';
+}
+
+/* ════════════════════════════════
+   IMPORT DOCX
+════════════════════════════════ */
+function importDocx(input){
+    if(!input.files||!input.files[0]) return;
+    const file = input.files[0];
+
+    // Toast loading
+    const toast = document.createElement('div');
+    toast.id = 'docxToast';
+    toast.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:14px 28px;border-radius:10px;font-family:Inter,sans-serif;font-size:14px;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.25);';
+    toast.textContent = '⏳ Mengimpor dokumen...';
+    document.body.appendChild(toast);
+
+    const reader = new FileReader();
+    reader.onload = async function(e){
+        try {
+            const arrayBuffer = e.target.result;
+            const result = await mammoth.convertToHtml({ arrayBuffer });
+            const html = result.value;
+
+            // Konfirmasi jika editor sudah berisi konten
+            const content = document.getElementById('storyContent');
+            const currentText = content.innerText.trim();
+            const isDefault = currentText === 'Mulailah menulis ceritamu di sini...' || currentText === '';
+
+            if(!isDefault){
+                const confirm = window.confirm('Editor sudah berisi teks. Pilih OK untuk mengganti isi dengan dokumen ini, atau Cancel untuk menambahkan di akhir.');
+                if(confirm){
+                    content.innerHTML = html || '<p><br></p>';
+                } else {
+                    content.innerHTML += html;
+                }
+            } else {
+                content.innerHTML = html || '<p><br></p>';
+            }
+
+            // Coba ambil judul dari <h1> pertama
+            const firstH1 = content.querySelector('h1');
+            if(firstH1){
+                const titleEl = document.getElementById('storyTitle');
+                const currentTitle = titleEl.innerText.trim();
+                if(currentTitle === 'Judul Cerita Anda...' || currentTitle === ''){
+                    titleEl.innerText = firstH1.innerText;
+                    onTitleInput();
+                    firstH1.remove();
+                }
+            }
+
+            toast.style.background = '#16a34a';
+            toast.textContent = '✓ Dokumen berhasil diimpor!';
+            setTimeout(()=>toast.remove(), 2500);
+        } catch(err){
+            console.error('Gagal import docx:', err);
+            toast.style.background = '#ef4444';
+            toast.textContent = '⚠ Gagal membaca file. Pastikan format .docx valid.';
+            setTimeout(()=>toast.remove(), 3000);
+        }
+        input.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+}
 
 function applySelectionColumn(){
     const sel=window.getSelection();
