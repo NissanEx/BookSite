@@ -654,6 +654,7 @@
 
             /* --- Right section --- */
             .right { width: 100%; }
+            .reading-layout { overflow: visible; }
 
             .right-topbar {
                 padding: 8px 14px;
@@ -688,10 +689,23 @@
             .card p  { font-size: 11px !important; }
 
             /* --- Reader --- */
-            .reader-paper-wrap { padding: 6px 8px 0; }
+            .reader-paper-wrap {
+                padding: 6px 8px 0;
+                overflow-y: auto;          /* scroll vertikal aktif di mobile */
+                -webkit-overflow-scrolling: touch;
+                align-items: flex-start;   /* paper tidak stretch penuh, ikuti konten */
+                padding-bottom: 70px;      /* ruang supaya tidak tertutup bottom sheet */
+            }
             .reader-paper {
-                padding: 18px 16px 24px;
+                padding: 18px 16px 32px;
                 border-radius: 8px 8px 0 0;
+                overflow: visible;         /* biarkan konten keluar — yang scroll adalah wrap-nya */
+                height: auto;              /* tinggi ikuti konten, bukan fixed */
+                min-height: unset;
+            }
+            #story-text {
+                overflow: visible;         /* tampilkan semua konten tanpa terpotong */
+                min-height: unset;
             }
             #story-text .paper-title { font-size: 22px; margin-bottom: 16px; }
             #story-text .paper-content { font-size: 15px !important; line-height: 1.72; }
