@@ -259,23 +259,22 @@
 
         .scroll-top-btn { display: none; } /* tidak perlu di mode per-halaman */
 
-        /* ===== PAGE NAVIGATION BAR ===== */
+        /* ===== PAGE NAVIGATION BAR (Minimalist) ===== */
         .page-nav-bar {
             flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-            gap: 12px; padding: 10px 40px;
+            gap: 16px; padding: 12px 40px;
             background: inherit;
             border-top: 1px solid rgba(0,0,0,0.06);
         }
         body.dark-mode .page-nav-bar { border-top-color: rgba(255,255,255,0.08); }
         .page-nav-btn {
-            display: flex; align-items: center; gap: 6px;
-            padding: 7px 18px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%; padding: 0;
             background: transparent; border: 1.5px solid rgba(0,0,0,0.14);
-            cursor: pointer; font-size: 12px; font-weight: 700;
-            font-family: 'Lora', serif; color: inherit;
-            letter-spacing: 0.5px; transition: background 0.18s, opacity 0.18s, transform 0.15s;
+            cursor: pointer; font-size: 14px; color: inherit;
+            transition: background 0.18s, opacity 0.18s, transform 0.15s;
         }
-        .page-nav-btn:hover:not(:disabled) { background: rgba(0,0,0,0.05); transform: scale(1.03); }
+        .page-nav-btn:hover:not(:disabled) { background: rgba(0,0,0,0.05); transform: scale(1.08); }
         .page-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
         body.dark-mode .page-nav-btn { border-color: rgba(255,255,255,0.18); }
         body.dark-mode .page-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.07); }
@@ -312,14 +311,8 @@
         body.dark-mode .reader-outside-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
         .reader-outside { max-width: 750px; margin: 0 auto; padding-top: 20px; }
 
-        /* ===== BOTTOM SHEET handle (only shown mobile) ===== */
-        .bs-handle-bar {
-            display: none;
-            width: 36px; height: 4px; border-radius: 2px;
-            background: rgba(0,0,0,0.18); margin: 0 auto 4px;
-            flex-shrink: 0;
-        }
-        body.dark-mode .bs-handle-bar { background: rgba(255,255,255,0.22); }
+        /* ===== BOTTOM SHEET handle (minimalist desktop hide) ===== */
+        .bs-toggle-area { display: none; }
 
         .story-meta-bar { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 12px 20px; background: rgba(0,0,0,0.03); border-radius: 10px; flex-wrap: wrap; }
         body.dark-mode .story-meta-bar { background: rgba(255,255,255,0.05); }
@@ -716,8 +709,8 @@
             }
 
             /* Page nav bar lebih kompak */
-            .page-nav-bar { padding: 7px 12px; gap: 8px; }
-            .page-nav-btn { padding: 5px 12px; font-size: 11px; }
+            .page-nav-bar { padding: 8px 12px; gap: 12px; }
+            .page-nav-btn { width: 32px; height: 32px; font-size: 12px; }
             .page-indicator { font-size: 11px; }
 
             /* ===== BOTTOM SHEET (panel komentar/rating) ===== */
@@ -750,7 +743,33 @@
             }
 
             /* Handle bar tampil di mobile */
-            .bs-handle-bar { display: block; }
+            .bs-handle-bar {
+                display: block;
+                width: 36px; height: 4px; border-radius: 2px;
+                background: rgba(0,0,0,0.18); margin: 0 auto;
+                flex-shrink: 0;
+            }
+            body.dark-mode .bs-handle-bar { background: rgba(255,255,255,0.22); }
+
+            /* Handle area sebagai tombol toggle */
+            .bs-toggle-area {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 12px 16px 8px;
+                cursor: pointer;
+                flex-shrink: 0;
+                gap: 6px;
+            }
+
+            .bs-chevron {
+                font-size: 14px;
+                opacity: 0.4;
+                transition: transform 0.32s cubic-bezier(0.25, 0.8, 0.25, 1);
+            }
+            .reader-outside-wrap.bs-expanded .bs-chevron {
+                transform: rotate(180deg);
+            }
 
             /* Wrapper dalam bottom sheet: bisa discroll saat expanded */
             .reader-outside-wrap .reader-outside-inner {
@@ -763,25 +782,6 @@
                 padding-top: 12px;
                 margin: 0;
                 max-width: 100%;
-            }
-
-            /* Handle area sebagai tombol toggle */
-            .bs-toggle-area {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 10px 16px 6px;
-                cursor: pointer;
-                flex-shrink: 0;
-                gap: 6px;
-            }
-            .bs-peek-label {
-                font-size: 11px;
-                font-weight: 700;
-                letter-spacing: 0.8px;
-                text-transform: uppercase;
-                opacity: 0.45;
-                user-select: none;
             }
 
             /* Padding bawah paper agar tidak tertutup bottom sheet */
@@ -881,7 +881,7 @@
             #paperOverlay .fs-content { padding: 40px 48px; }
         }
     </style>
-    <script defer src="/_vercel/insights/script.js"></script>
+    <script src="/_vercel/insights/script.js"></script>
 </head>
 
 <body>
@@ -1096,18 +1096,6 @@
     const SUPABASE_KEY = 'sb_publishable_DkZQ2s0r45LPiSOXHJvnGQ_Gf6F47V9';
     const SB_H  = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
     const SB_HJ = { ...SB_H, 'Content-Type': 'application/json' };
-    // ⚠️ CATATAN RLS SUPABASE:
-    // Aplikasi ini menggunakan autentikasi manual (localStorage), BUKAN Supabase Auth.
-    // Agar PATCH ke tabel `users` dan upload ke bucket `avatars` berhasil,
-    // pastikan policy RLS di Supabase Dashboard mengizinkan akses anon key:
-    //
-    // Tabel `users`:
-    //   ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-    //   CREATE POLICY "anon dapat update users" ON users FOR UPDATE USING (true) WITH CHECK (true);
-    //   CREATE POLICY "anon dapat select users" ON users FOR SELECT USING (true);
-    //
-    // Storage bucket `avatars`:
-    //   Buka Storage → avatars → Policies → tambahkan policy INSERT & UPDATE untuk role "anon".
 
     let publishedStories = [];
     let currentCategory  = 'popular';
@@ -1591,23 +1579,23 @@
                 </div>
 
                 <div class="page-nav-bar" id="pageNavBar" style="display:none;">
-                    <button class="page-nav-btn" id="pagePrevBtn" onclick="changePage(-1)" disabled>
-                        <i class="fa-solid fa-chevron-left"></i> Sebelumnya
+                    <button class="page-nav-btn" id="pagePrevBtn" onclick="changePage(-1)" disabled title="Sebelumnya">
+                        <i class="fa-solid fa-chevron-left"></i>
                     </button>
                     <div class="page-indicator">
                         <div class="page-dots" id="pageDots"></div>
-                        <span id="pageLabel">Hal 1 / 1</span>
+                        <span id="pageLabel">1 / 1</span>
                     </div>
-                    <button class="page-nav-btn" id="pageNextBtn" onclick="changePage(1)">
-                        Berikutnya <i class="fa-solid fa-chevron-right"></i>
+                    <button class="page-nav-btn" id="pageNextBtn" onclick="changePage(1)" title="Berikutnya">
+                        <i class="fa-solid fa-chevron-right"></i>
                     </button>
                 </div>
 
                 <div class="reader-outside-wrap" id="readerOutsideWrap">
                     <!-- Handle bar bottom sheet (mobile only) -->
-                    <div class="bs-toggle-area" id="bsToggleArea" onclick="toggleBottomSheet()">
+                    <div class="bs-toggle-area" id="bsToggleArea" onclick="toggleBottomSheet()" title="Buka/Tutup Rating & Komentar">
                         <div class="bs-handle-bar"></div>
-                        <span class="bs-peek-label" id="bsPeekLabel">⭐ Rating &amp; 💬 Komentar ↑</span>
+                        <i class="fa-solid fa-chevron-up bs-chevron"></i>
                     </div>
                     <div class="reader-outside-inner">
                     <div class="reader-outside">
@@ -2415,7 +2403,7 @@
         bar.style.display = total > 1 ? 'flex' : 'none';
         if (prev)  prev.disabled  = (_currentPage === 0);
         if (next)  next.disabled  = (_currentPage === total - 1);
-        if (label) label.textContent = `Hal ${_currentPage + 1} / ${total}`;
+        if (label) label.textContent = `${_currentPage + 1} / ${total}`;
 
         if (dots) {
             const MAX_DOTS = 10;
@@ -3144,11 +3132,9 @@
 
     function toggleBottomSheet() {
         const wrap  = document.getElementById('readerOutsideWrap');
-        const label = document.getElementById('bsPeekLabel');
         if (!wrap) return;
         _bsExpanded = !_bsExpanded;
         wrap.classList.toggle('bs-expanded', _bsExpanded);
-        if (label) label.textContent = _bsExpanded ? '↓ Tutup' : '⭐ Rating & 💬 Komentar ↑';
     }
 
     function initBottomSheetDrag() {
@@ -3199,17 +3185,13 @@
                 wrap.style.transform = '';
                 _bsExpanded = false;
             }
-            const label = document.getElementById('bsPeekLabel');
-            if (label) label.textContent = _bsExpanded ? '↓ Tutup' : '⭐ Rating & 💬 Komentar ↑';
         }, { passive: true });
     }
 
     function resetBottomSheet() {
         _bsExpanded = false;
         const wrap  = document.getElementById('readerOutsideWrap');
-        const label = document.getElementById('bsPeekLabel');
         if (wrap) { wrap.classList.remove('bs-expanded'); wrap.style.transform = ''; }
-        if (label) label.textContent = '⭐ Rating & 💬 Komentar ↑';
     }
 
     window.onload = () => {

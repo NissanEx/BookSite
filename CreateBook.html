@@ -39,8 +39,43 @@
 
         /* EDITOR */
         .editor-workspace { flex: 1; overflow-y: auto; padding: 40px 10px; display: flex; justify-content: center; align-items: flex-start; position: relative; }
-        .paper { background: var(--paper-color); width: 100%; max-width: 850px; min-height: 1100px; height: auto; padding: 60px 90px; box-shadow: var(--shadow); position: relative; }
-        .paper-content { font-family: 'Lora', serif; font-size: 18px; line-height: 1.8; color: #333; min-height: 800px; height: auto; outline: none; }
+        
+        .paper-container { width: 100%; max-width: 850px; display: flex; flex-direction: column; }
+        .paper { background: var(--paper-color); width: 100%; min-height: 800px; height: auto; padding: 60px 90px; box-shadow: var(--shadow); position: relative; border-radius: 8px; }
+        .paper-content { font-family: 'Lora', serif; font-size: 18px; line-height: 1.8; color: #333; min-height: 600px; height: auto; outline: none; }
+
+        /* PAGE NAVIGATION BAR */
+        .page-nav-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 16px; padding: 24px 0; margin-top: 10px;
+        }
+        .page-nav-btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%; padding: 0;
+            background: transparent; border: 1.5px solid var(--border-color);
+            cursor: pointer; font-size: 14px; color: inherit;
+            transition: all 0.18s;
+        }
+        .page-nav-btn:hover:not(:disabled) { background: rgba(0,0,0,0.05); transform: scale(1.08); }
+        .page-nav-btn:disabled { opacity: 0.25; cursor: not-allowed; transform: none; }
+
+        .page-indicator {
+            font-size: 12px; font-weight: 600; opacity: 0.55; letter-spacing: 0.5px; user-select: none;
+        }
+        .page-action-btn {
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            cursor: pointer; border: 1.5px solid var(--border-color); background: white; color: #374151;
+            display: flex; align-items: center; gap: 6px; transition: all 0.2s; margin-left: 10px;
+        }
+        .page-action-btn:hover { background: #f3f4f6; }
+        .page-action-btn.danger { color: #ef4444; border-color: #fca5a5; margin-left: 5px; }
+        .page-action-btn.danger:hover { background: #fef2f2; }
+
+        @media (max-width: 640px) {
+            .paper { padding: 40px 30px; min-height: 600px; }
+            .page-nav-bar { gap: 10px; flex-wrap: wrap; }
+            .page-action-btn { margin-left: 0; }
+        }
 
         /* MINI SAMPUL BAR */
         .cover-bar { display: flex; align-items: center; gap: 20px; margin-bottom: 36px; padding-bottom: 28px; border-bottom: 1px solid #e5e7eb; }
@@ -140,7 +175,7 @@
         .ctrl-input { width: 100%; padding: 8px 12px; border: 1.5px solid #e5e7eb; border-radius: 7px; font-size: 13px; outline: none; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
         .ctrl-input:focus { border-color: #6b7280; }
 
-/* Cover required toast */
+        /* Cover required toast */
         .cover-upload-modal {
             position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
             z-index: 2000; display: none; align-items: center; justify-content: center;
@@ -270,11 +305,33 @@
 </div>
 
 <div class="editor-workspace">
-    <div class="paper" id="paper">
+    <div class="paper-container">
+        <!-- Editor Paper -->
+        <div class="paper" id="paper">
+            <div contenteditable="true" class="paper-title" id="storyTitle" oninput="onTitleInput()">Judul Cerita Anda...</div>
+            <div contenteditable="true" class="paper-content" id="storyContent" oninput="onContentInput()">
+                <p>Mulailah menulis ceritamu di sini...</p>
+            </div>
+        </div>
+        
+        <!-- Pagination Nav Bar -->
+        <div class="page-nav-bar" id="pageNavBar">
+            <button class="page-nav-btn" id="pagePrevBtn" onclick="changeEditPage(-1)" disabled title="Sebelumnya">
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <div class="page-indicator">
+                <span id="pageLabel">1 / 1</span>
+            </div>
+            <button class="page-nav-btn" id="pageNextBtn" onclick="changeEditPage(1)" disabled title="Berikutnya">
+                <i data-lucide="chevron-right"></i>
+            </button>
 
-        <div contenteditable="true" class="paper-title" id="storyTitle" oninput="onTitleInput()">Judul Cerita Anda...</div>
-        <div contenteditable="true" class="paper-content" id="storyContent">
-            <p>Mulailah menulis ceritamu di sini...</p>
+            <button class="page-action-btn" onclick="addEditPage()" title="Tambah Halaman Baru">
+                <i data-lucide="plus" style="width:14px;height:14px;"></i> Tambah
+            </button>
+            <button class="page-action-btn danger" id="pageDelBtn" onclick="deleteEditPage()" title="Hapus Halaman Ini" style="display:none;">
+                <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Hapus
+            </button>
         </div>
     </div>
 </div>
@@ -449,7 +506,69 @@
 lucide.createIcons();
 
 /* ════════════════════════════════
-   STATE
+   PAGINATION EDITOR (SISTEM HALAMAN)
+════════════════════════════════ */
+let editorPages = ["<p>Mulailah menulis ceritamu di sini...</p>"];
+let currentEditPage = 0;
+
+function onContentInput() {
+    editorPages[currentEditPage] = document.getElementById('storyContent').innerHTML;
+}
+
+function updatePageNavUI() {
+    const prevBtn = document.getElementById('pagePrevBtn');
+    const nextBtn = document.getElementById('pageNextBtn');
+    const delBtn  = document.getElementById('pageDelBtn');
+    const label   = document.getElementById('pageLabel');
+    const titleEl = document.getElementById('storyTitle');
+
+    if(prevBtn) prevBtn.disabled = (currentEditPage === 0);
+    if(nextBtn) nextBtn.disabled = (currentEditPage === editorPages.length - 1);
+    if(label) label.textContent = `${currentEditPage + 1} / ${editorPages.length}`;
+    if(delBtn) delBtn.style.display = editorPages.length > 1 ? 'flex' : 'none';
+
+    // Judul cerita hanya ditampilkan di Halaman 1 layaknya buku nyata
+    if(titleEl) titleEl.style.display = (currentEditPage === 0) ? 'block' : 'none';
+}
+
+function changeEditPage(dir) {
+    onContentInput(); // Simpan halaman saat ini sebelum pindah
+    const newPage = currentEditPage + dir;
+    if (newPage >= 0 && newPage < editorPages.length) {
+        currentEditPage = newPage;
+        document.getElementById('storyContent').innerHTML = editorPages[currentEditPage];
+        updatePageNavUI();
+        document.querySelector('.editor-workspace').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function addEditPage() {
+    onContentInput(); // Simpan yang sedang dikerjakan
+    // Sisipkan halaman baru kosong tepat setelah halaman aktif
+    editorPages.splice(currentEditPage + 1, 0, "<p><br></p>");
+    currentEditPage++;
+    document.getElementById('storyContent').innerHTML = editorPages[currentEditPage];
+    updatePageNavUI();
+    document.getElementById('storyContent').focus();
+    document.querySelector('.editor-workspace').scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteEditPage() {
+    if (editorPages.length <= 1) return;
+    if (!confirm('Hapus halaman ini? Semua tulisan di halaman ini akan hilang permanen.')) return;
+
+    editorPages.splice(currentEditPage, 1);
+    // Jika halaman terakhir dihapus, mundur 1 index
+    if (currentEditPage >= editorPages.length) {
+        currentEditPage = editorPages.length - 1;
+    }
+    document.getElementById('storyContent').innerHTML = editorPages[currentEditPage];
+    updatePageNavUI();
+}
+
+
+/* ════════════════════════════════
+   STATE & DATA
 ════════════════════════════════ */
 const TEMPLATES = [
     { bg: 'linear-gradient(155deg,#0f0c29,#302b63,#24243e)' },
@@ -691,7 +810,7 @@ function removeCover(){
 /* ════════════════════════════════
    EDITOR FUNCTIONS
 ════════════════════════════════ */
-function format(cmd, val=null){ document.execCommand(cmd,false,val); }
+function format(cmd, val=null){ document.execCommand(cmd,false,val); onContentInput(); }
 
 /* ════════════════════════════════
    FONT SIZE
@@ -700,10 +819,8 @@ function applyFontSize(px){
     if(!px) return;
     const sel = window.getSelection();
     if(!sel || sel.isCollapsed){
-        // Terapkan ke kursor (karakter berikutnya)
         document.execCommand('styleWithCSS', false, true);
-        document.execCommand('fontSize', false, '7'); // dummy size
-        // Ganti semua <font size="7"> menjadi span dengan px
+        document.execCommand('fontSize', false, '7'); 
         const content = document.getElementById('storyContent');
         content.querySelectorAll('font[size="7"]').forEach(el => {
             const span = document.createElement('span');
@@ -711,6 +828,7 @@ function applyFontSize(px){
             span.innerHTML = el.innerHTML;
             el.replaceWith(span);
         });
+        onContentInput();
         return;
     }
     document.execCommand('styleWithCSS', false, true);
@@ -722,8 +840,8 @@ function applyFontSize(px){
         span.innerHTML = el.innerHTML;
         el.replaceWith(span);
     });
-    // Reset selector
     document.getElementById('fontSize').value = '';
+    onContentInput();
 }
 
 /* ════════════════════════════════
@@ -733,7 +851,6 @@ function importDocx(input){
     if(!input.files||!input.files[0]) return;
     const file = input.files[0];
 
-    // Toast loading
     const toast = document.createElement('div');
     toast.id = 'docxToast';
     toast.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#000;color:#fff;padding:14px 28px;border-radius:10px;font-family:Inter,sans-serif;font-size:14px;z-index:9999;box-shadow:0 10px 30px rgba(0,0,0,0.25);';
@@ -747,13 +864,12 @@ function importDocx(input){
             const result = await mammoth.convertToHtml({ arrayBuffer });
             const html = result.value;
 
-            // Konfirmasi jika editor sudah berisi konten
             const content = document.getElementById('storyContent');
             const currentText = content.innerText.trim();
             const isDefault = currentText === 'Mulailah menulis ceritamu di sini...' || currentText === '';
 
             if(!isDefault){
-                const confirm = window.confirm('Editor sudah berisi teks. Pilih OK untuk mengganti isi dengan dokumen ini, atau Cancel untuk menambahkan di akhir.');
+                const confirm = window.confirm('Editor sudah berisi teks. Pilih OK untuk mengganti isi dengan dokumen ini, atau Cancel untuk menambahkan di akhir halaman ini.');
                 if(confirm){
                     content.innerHTML = html || '<p><br></p>';
                 } else {
@@ -763,9 +879,8 @@ function importDocx(input){
                 content.innerHTML = html || '<p><br></p>';
             }
 
-            // Coba ambil judul dari <h1> pertama
             const firstH1 = content.querySelector('h1');
-            if(firstH1){
+            if(firstH1 && currentEditPage === 0){
                 const titleEl = document.getElementById('storyTitle');
                 const currentTitle = titleEl.innerText.trim();
                 if(currentTitle === 'Judul Cerita Anda...' || currentTitle === ''){
@@ -775,6 +890,8 @@ function importDocx(input){
                 }
             }
 
+            onContentInput(); // Simpan hasil import ke state halaman aktif
+            
             toast.style.background = '#16a34a';
             toast.textContent = '✓ Dokumen berhasil diimpor!';
             setTimeout(()=>toast.remove(), 2500);
@@ -799,6 +916,7 @@ function applySelectionColumn(){
     range.insertNode(col);
     const p=document.createElement('p'); p.innerHTML='<br>'; col.after(p);
     sel.removeAllRanges();
+    onContentInput();
 }
 
 function resetAllColumns(){
@@ -806,6 +924,7 @@ function resetAllColumns(){
         while(div.firstChild) div.parentNode.insertBefore(div.firstChild,div);
         div.remove();
     });
+    onContentInput();
 }
 
 function toggleLines(){
@@ -832,8 +951,9 @@ function insertFreeImage(input){
         del.style.cssText='position:absolute;top:8px;right:8px;background:#ef4444;color:#fff;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;display:none;';
         wrap.addEventListener('mouseenter',()=>del.style.display='block');
         wrap.addEventListener('mouseleave',()=>del.style.display='none');
-        del.onclick=()=>{ const p=document.createElement('p'); p.innerHTML='<br>'; wrap.replaceWith(p); };
+        del.onclick=()=>{ const p=document.createElement('p'); p.innerHTML='<br>'; wrap.replaceWith(p); onContentInput(); };
         wrap.appendChild(img); wrap.appendChild(del);
+        
         const sel=window.getSelection();
         if(sel&&sel.rangeCount){
             const range=sel.getRangeAt(0);
@@ -842,17 +962,23 @@ function insertFreeImage(input){
                 const p=document.createElement('p'); p.innerHTML='<br>'; wrap.after(p);
                 const nr=document.createRange(); nr.setStart(p,0); nr.collapse(true);
                 sel.removeAllRanges(); sel.addRange(nr);
-                input.value=''; return;
+                input.value='';
+                onContentInput();
+                return;
             }
         }
         content.appendChild(wrap);
         const p=document.createElement('p'); p.innerHTML='<br>'; content.appendChild(p);
         input.value='';
+        onContentInput();
     };
     r.readAsDataURL(input.files[0]);
 }
 
-function saveDraft(){ alert("Draf disimpan."); }
+function saveDraft(){ 
+    onContentInput();
+    alert("Draf disimpan."); 
+}
 
 /* ════════════════════════════════
    COVER UPLOAD + CROP
@@ -870,7 +996,7 @@ function publishStory(){
         document.getElementById('cropHint').style.display = 'none';
         document.getElementById('cupDrop').style.display = 'flex';
         document.getElementById('cupPreviewBook').style.display = 'none';
-        // Pre-fill title as suggestion — user can change it freely
+        // Pre-fill title as suggestion
         const paperTitle = document.getElementById('storyTitle').innerText.trim();
         const cupTitleEl = document.getElementById('cupTitle');
         if(!cupTitleEl.dataset.edited) cupTitleEl.value = paperTitle || '';
@@ -902,7 +1028,6 @@ function initCrop(img){
     canvas.style.width = CANVAS_W + 'px';
     canvas.style.height = CANVAS_H + 'px';
 
-    // Scale image to fit canvas
     const scale = Math.max(CANVAS_W / img.width, CANVAS_H / img.height);
     const dw = img.width * scale, dh = img.height * scale;
     const ox = (CANVAS_W - dw) / 2, oy = (CANVAS_H - dh) / 2;
@@ -998,7 +1123,7 @@ function closeCoverUploadModal(){
 }
 
 // ============================================================
-// KONFIGURASI SUPABASE
+// KONFIGURASI SUPABASE & PUBLISH
 // ============================================================
 const SUPABASE_URL = 'https://hrncbsvzgwdamatydyfu.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_DkZQ2s0r45LPiSOXHJvnGQ_Gf6F47V9';
@@ -1021,6 +1146,7 @@ async function sbStory(path, options = {}) {
 }
 
 async function doPublish() {
+    onContentInput(); // Pastikan state array tersimpan!
     if (pendingCoverDataUrl) finalCoverUrl = pendingCoverDataUrl;
     closeCoverUploadModal();
 
@@ -1028,14 +1154,16 @@ async function doPublish() {
                        || document.getElementById('storyTitle').innerText.trim()
                        || 'Tanpa Judul';
     const paperTitle = document.getElementById('storyTitle').innerText.trim();
-    const content    = document.getElementById('storyContent').innerHTML;
+    
+    // Gabungkan seluruh isi halaman menggunakan pemisah custom
+    const combinedContent = editorPages.join('<!-- pagebreak -->');
+
     const desc       = document.getElementById('cupDesc').value.trim();
     const author     = document.getElementById('cupAuthor').value.trim() || st.author || 'Username';
     const genre      = document.getElementById('cupGenre').value;
     const tags       = document.getElementById('cupTags').value.trim();
     const currentUser = localStorage.getItem('username') || author;
 
-    // Tombol disabled saat proses
     const publishBtn = document.getElementById('cupPublishBtn');
     if (publishBtn) { publishBtn.disabled = true; publishBtn.textContent = 'Mengirim...'; }
 
@@ -1043,38 +1171,34 @@ async function doPublish() {
         const editingId = localStorage.getItem('editingStoryId');
 
         if (editingId) {
-            // ── MODE EDIT: update row di Supabase
             await sbStory(`stories?id=eq.${editingId}`, {
                 method: 'PATCH',
                 body: JSON.stringify({
                     title, paper_title: paperTitle,
                     author, author_username: currentUser,
                     cover: finalCoverUrl || null,
-                    content, description: desc, genre, tags,
-                    status: 'pending',   // kembali pending setelah diedit
+                    content: combinedContent, description: desc, genre, tags,
+                    status: 'pending',
                     edited_at: new Date().toISOString(),
                     submitted_at: new Date().toISOString()
                 })
             });
             localStorage.removeItem('editingStoryId');
             showPendingToast(title, true);
-
         } else {
-            // ── MODE BARU: insert ke Supabase
             await sbStory('stories', {
                 method: 'POST',
                 body: JSON.stringify({
                     title, paper_title: paperTitle,
                     author, author_username: currentUser,
                     cover: finalCoverUrl || null,
-                    content, description: desc, genre, tags,
+                    content: combinedContent, description: desc, genre, tags,
                     status: 'pending',
                     submitted_at: new Date().toISOString()
                 })
             });
             showPendingToast(title, false);
         }
-
         setTimeout(() => { window.location.href = 'home.html'; }, 2800);
 
     } catch (err) {
@@ -1103,12 +1227,11 @@ function showPendingToast(title, isEdit, isError = false) {
     document.body.appendChild(toast);
 }
 
-// ===== EDIT MODE: dipanggil terakhir agar semua fungsi (render, dll) sudah terdefinisi =====
+// ===== EDIT MODE LOADER =====
 (function loadEditMode() {
     const editingId = localStorage.getItem('editingStoryId');
     if (!editingId) return;
 
-    // Banner edit mode
     const banner = document.createElement('div');
     banner.id = 'editBanner';
     banner.style.cssText = 'background:#fffbeb;border-bottom:1px solid #fde68a;padding:9px 24px;font-size:12px;color:#92400e;font-weight:600;text-align:center;flex-shrink:0;order:-1;';
@@ -1126,20 +1249,26 @@ function showPendingToast(title, isEdit, isError = false) {
 
         document.getElementById('editBannerTitle').innerHTML = `"<em>${story.title || story.paper_title || ''}</em>"`;
 
-        // Isi editor utama
+        let loadedContent = story.content || '';
+        if (loadedContent.includes('<!-- pagebreak -->')) {
+            editorPages = loadedContent.split('<!-- pagebreak -->');
+        } else {
+            editorPages = [loadedContent];
+        }
+        currentEditPage = 0;
+
         const titleEl   = document.getElementById('storyTitle');
         const contentEl = document.getElementById('storyContent');
         if (titleEl)   titleEl.innerText   = story.paper_title || story.title || '';
-        if (contentEl) contentEl.innerHTML = story.content || '';
+        if (contentEl) contentEl.innerHTML = editorPages[currentEditPage] || '';
 
-        // Sync cover preview state
+        // Sync metadata
         if (story.cover) finalCoverUrl = story.cover;
         st.title  = (story.paper_title || story.title || 'Judul Cerita');
         st.author = story.author || 'Username';
         st.genre  = story.genre  || 'Novel';
-        render(); // sekarang render sudah pasti terdefinisi
+        render();
 
-        // Isi field metadata modal terbit (diisi sekarang, siap saat modal dibuka)
         const cupTitle  = document.getElementById('cupTitle');
         const cupAuthor = document.getElementById('cupAuthor');
         const cupDesc   = document.getElementById('cupDesc');
@@ -1153,19 +1282,19 @@ function showPendingToast(title, isEdit, isError = false) {
             const opt = Array.from(cupGenre.options).find(o => o.value.toLowerCase() === (story.genre||'').toLowerCase());
             if (opt) cupGenre.value = opt.value;
         }
+
+        updatePageNavUI();
     }
 
-    // Pakai cache dari home.html dulu (tidak perlu fetch ulang)
     const cached = localStorage.getItem('editingStoryData');
     if (cached) {
         try {
             fillStory(JSON.parse(cached));
             localStorage.removeItem('editingStoryData');
             return;
-        } catch(e) { /* cache rusak, lanjut fetch */ }
+        } catch(e) {}
     }
 
-    // Fallback: fetch langsung dari Supabase
     fetch(`https://hrncbsvzgwdamatydyfu.supabase.co/rest/v1/stories?id=eq.${editingId}&select=*`, {
         headers: {
             'apikey': 'sb_publishable_DkZQ2s0r45LPiSOXHJvnGQ_Gf6F47V9',
@@ -1175,11 +1304,14 @@ function showPendingToast(title, isEdit, isError = false) {
     .then(r => r.json())
     .then(data => fillStory(Array.isArray(data) && data.length > 0 ? data[0] : null))
     .catch(err => {
-        console.error('Gagal load cerita edit:', err);
         const el = document.getElementById('editBannerTitle');
         if (el) el.textContent = '⚠ Gagal memuat — coba refresh';
     });
 })();
+
+document.addEventListener("DOMContentLoaded", () => {
+    updatePageNavUI();
+});
 </script>
 </body>
 </html>
