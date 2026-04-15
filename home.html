@@ -234,11 +234,12 @@
             padding: 40px 80px 40px;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
             border-radius: 8px 8px 0 0;
-            overflow: visible;         /* konten bisa keluar, scroll ada di wrap */
-            height: auto;              /* tinggi ikuti konten */
+            overflow: visible;
+            height: auto;
             min-height: 100%;
             display: flex; flex-direction: column;
             position: relative;
+            align-self: flex-start; /* penting: tinggi ikuti konten, bukan stretch */
         }
         body.dark-mode .reader-paper { background-color: #1e1e1e; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4); }
         body.sepia-mode .reader-paper { background-color: #fdf6e3; }
@@ -2293,15 +2294,19 @@
         const paper   = document.getElementById('readerPaper');
         const stEl    = document.getElementById('story-text');
         if (!paper || !stEl) {
-            // Fallback kalau DOM belum siap: pakai estimasi karakter
             return splitByChars(html, 2400);
         }
 
-        // Tinggi area konten dalam paper (kurangi padding atas+bawah)
+        // Gunakan tinggi wrap (container scroll) sebagai tinggi halaman
+        const wrap = paper.parentElement;
+        const wrapHeight = wrap ? wrap.clientHeight : 0;
+
         const paperStyle  = getComputedStyle(paper);
         const paddingTop  = parseFloat(paperStyle.paddingTop)  || 40;
         const paddingBot  = parseFloat(paperStyle.paddingBottom) || 40;
-        const pageHeight  = paper.clientHeight - paddingTop - paddingBot - 20; // 20 = sedikit buffer
+
+        // pageHeight = tinggi visible area wrap dikurangi padding paper
+        const pageHeight = (wrapHeight > 0 ? wrapHeight : 600) - paddingTop - paddingBot - 20;
 
         if (pageHeight <= 0) return splitByChars(html, 2400);
 
