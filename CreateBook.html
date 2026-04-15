@@ -513,6 +513,122 @@ let currentEditPage = 0;
 
 function onContentInput() {
     editorPages[currentEditPage] = document.getElementById('storyContent').innerHTML;
+    // Cek overflow setelah sedikit delay (biar DOM ter-render dulu)
+    clearTimeout(window._autoPageTimer);
+    window._autoPageTimer = setTimeout(checkAutoPage, 300);
+}
+
+/* ═══════════════════════════════════
+   AUTO-PAGE: tambah halaman otomatis
+   jika konten meluap dari paper
+═══════════════════════════════════ */
+const PAGE_MAX_HEIGHT = 680; // px — batas tinggi konten sebelum auto-pindah halaman
+
+function checkAutoPage() {
+    const contentEl = document.getElementById('storyContent');
+    if (!contentEl) return;
+
+    // Jika konten lebih tinggi dari batas halaman
+    if (contentEl.scrollHeight > PAGE_MAX_HEIGHT) {
+        splitOverflowToNextPage(contentEl);
+    }
+}
+
+function splitOverflowToNextPage(contentEl) {
+    // Kumpulkan semua child nodes (paragraf, div, dll)
+    const children = Array.from(contentEl.childNodes);
+    if (children.length === 0) return;
+
+    // Ukur seberapa jauh setiap node secara kumulatif
+    // Kita perlu tahu node mana yang menyebabkan overflow
+    let fitsNodes = [];
+    let overflowNodes = [];
+
+    // Buat clone sementara untuk mengukur
+    const probe = document.createElement('div');
+    probe.style.cssText = `
+        position: absolute; visibility: hidden; pointer-events: none;
+        width: ${contentEl.offsetWidth}px;
+        font-family: ${getComputedStyle(contentEl).fontFamily};
+        font-size: ${getComputedStyle(contentEl).fontSize};
+        line-height: ${getComputedStyle(contentEl).lineHeight};
+        padding: 0; margin: 0; box-sizing: border-box;
+    `;
+    document.body.appendChild(probe);
+
+    for (let i = 0; i < children.length; i++) {
+        const clone = children[i].cloneNode(true);
+        probe.appendChild(clone);
+        if (probe.scrollHeight > PAGE_MAX_HEIGHT) {
+            // Node ke-i ini sudah melewati batas
+            overflowNodes = children.slice(i);
+            break;
+        }
+        fitsNodes.push(children[i]);
+    }
+
+    document.body.removeChild(probe);
+
+    // Tidak ada overflow yang bisa dipisah (misal 1 paragraf super panjang)
+    if (overflowNodes.length === 0) return;
+    // Semua konten muat — tidak ada yang perlu dipindah
+    if (fitsNodes.length === 0) return;
+
+    // Bangun HTML untuk halaman saat ini (yang muat)
+    const currentDiv = document.createElement('div');
+    fitsNodes.forEach(n => currentDiv.appendChild(n.cloneNode(true)));
+    const currentHTML = currentDiv.innerHTML;
+
+    // Bangun HTML untuk halaman berikutnya (yang meluap)
+    const overflowDiv = document.createElement('div');
+    overflowNodes.forEach(n => overflowDiv.appendChild(n.cloneNode(true)));
+    const overflowHTML = overflowDiv.innerHTML;
+
+    // Simpan halaman saat ini dengan konten yang muat saja
+    editorPages[currentEditPage] = currentHTML;
+    contentEl.innerHTML = currentHTML;
+
+    // Sisipkan halaman baru tepat setelah halaman aktif dengan konten overflow
+    editorPages.splice(currentEditPage + 1, 0, overflowHTML);
+
+    // Pindah ke halaman berikutnya
+    currentEditPage++;
+    contentEl.innerHTML = editorPages[currentEditPage];
+    updatePageNavUI();
+
+    // Pindahkan kursor ke awal halaman baru
+    const range = document.createRange();
+    const sel = window.getSelection();
+    if (contentEl.firstChild) {
+        range.setStart(contentEl.firstChild, 0);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+    contentEl.focus();
+    document.querySelector('.editor-workspace').scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Tampilkan notif kecil
+    showAutoPageToast();
+}
+
+function showAutoPageToast() {
+    // Hapus toast lama kalau ada
+    const old = document.getElementById('autoPageToast');
+    if (old) old.remove();
+
+    const toast = document.createElement('div');
+    toast.id = 'autoPageToast';
+    toast.style.cssText = `
+        position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+        background: #111; color: #fff; padding: 10px 22px; border-radius: 30px;
+        font-family: 'Inter', sans-serif; font-size: 13px; z-index: 9999;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.2); opacity: 1;
+        transition: opacity 0.4s ease; display: flex; align-items: center; gap: 8px;
+    `;
+    toast.innerHTML = `<span style="font-size:16px;">📄</span> Halaman baru otomatis ditambahkan`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 2200);
 }
 
 function updatePageNavUI() {
@@ -1311,6 +1427,27 @@ function showPendingToast(title, isEdit, isError = false) {
 
 document.addEventListener("DOMContentLoaded", () => {
     updatePageNavUI();
+
+    // Auto-page saat paste konten panjang
+    const contentEl = document.getElementById('storyContent');
+    if (contentEl) {
+        contentEl.addEventListener('paste', () => {
+            // Tunggu DOM selesai di-update setelah paste
+            setTimeout(() => {
+                editorPages[currentEditPage] = contentEl.innerHTML;
+                // Loop split — kalau konten sangat panjang, bisa butuh banyak halaman
+                let attempts = 0;
+                function multiSplit() {
+                    if (contentEl.scrollHeight > PAGE_MAX_HEIGHT && attempts < 30) {
+                        attempts++;
+                        splitOverflowToNextPage(contentEl);
+                        setTimeout(multiSplit, 80);
+                    }
+                }
+                multiSplit();
+            }, 150);
+        });
+    }
 });
 </script>
 </body>
