@@ -68,7 +68,7 @@
         body.dark-mode .create-btn { background: #eee; color: #000; }
 
         /* ================= MAIN CONTENT ================= */
-        .right { flex-grow: 1; padding: 0; height: 100%; overflow: hidden; background: #fafafa; position: relative; display: flex; flex-direction: column; }
+        .right { flex-grow: 1; flex-shrink: 1; flex-basis: 0; min-width: 0; min-height: 0; padding: 0; overflow: hidden; background: #fafafa; position: relative; display: flex; flex-direction: column; }
         body.dark-mode .right { background: #111; }
         body.sepia-mode .right { background: #ede3ca; }
 
@@ -101,7 +101,7 @@
         body.dark-mode #readProgress { background: #fff; }
         body.sepia-mode #readProgress { background: #5b4636; }
 
-        .right-scroll { flex: 1; overflow-y: auto; padding: 0 40px 60px; min-height: 0; }
+        .right-scroll { flex: 1; overflow-y: auto; padding: 30px 40px 60px; min-height: 0; }
         .right-scroll.reading-mode { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
         .right-scroll.reading-mode #dynamic-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
@@ -1235,7 +1235,7 @@
             rs.classList.add('reading-mode'); rs.style.padding = '0';
         } else {
             rs.classList.remove('reading-mode');
-            rs.style.padding = isMobile() ? '0 16px 80px' : '30px 40px 60px';
+            rs.style.padding = isMobile() ? '0 16px 80px' : '';
         }
         if (!on) { document.getElementById('readProgressWrap').classList.remove('visible'); document.getElementById('readProgress').style.width = '0%'; }
     }
@@ -1481,6 +1481,7 @@
     // ===== LOAD CATEGORY =====
     async function loadCategory(cat) {
         currentCategory = cat;
+        saveActiveView('category:' + cat);
         setReaderMode(false);
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const navEl = document.getElementById(`nav-${cat}`);
@@ -2850,8 +2851,17 @@
         if (el) el.classList.add('active');
     }
 
+    // ===== STATE PERSISTENCE (session) =====
+    function saveActiveView(view) {
+        try { sessionStorage.setItem('oyb_active_view', view); } catch(e) {}
+    }
+    function getActiveView() {
+        try { return sessionStorage.getItem('oyb_active_view') || 'popular'; } catch(e) { return 'popular'; }
+    }
+
     // ===== RUANG DISKUSI =====
     async function loadDiskusi() {
+        saveActiveView('diskusi');
         setReaderMode(false);
         setNavActive('nav-diskusi');
         const content = document.getElementById('dynamic-content');
@@ -3195,7 +3205,16 @@
     }
 
     window.onload = () => {
-        initProfile(); fetchPublishedStories(); loadCategory('popular'); initMobileNav();
+        initProfile(); fetchPublishedStories(); initMobileNav();
+        // Restore halaman terakhir yang aktif
+        const _savedView = getActiveView();
+        if (_savedView === 'diskusi') {
+            loadDiskusi();
+        } else if (_savedView && _savedView.startsWith('category:')) {
+            loadCategory(_savedView.replace('category:', ''));
+        } else {
+            loadCategory('popular');
+        }
 
         // Keyboard navigasi halaman
         document.addEventListener('keydown', (e) => {
