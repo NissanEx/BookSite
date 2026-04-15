@@ -227,27 +227,32 @@
 
         /* ===== READER ===== */
         .reading-layout { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
-        .reader-paper-wrap { flex: 1; min-height: 0; overflow: hidden; display: flex; justify-content: center; padding: 16px 40px 0; }
+        .reader-paper-wrap { flex: 1; min-height: 0; overflow-y: auto; display: flex; justify-content: center; padding: 16px 40px 0; }
         .reader-paper {
             background: #ffffff;
             width: 100%; max-width: 750px;
             padding: 40px 80px 40px;
             box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
             border-radius: 8px 8px 0 0;
-            overflow: hidden;          /* TIDAK bisa discroll — per halaman */
-            height: 100%;
+            overflow: visible;         /* konten bisa keluar, scroll ada di wrap */
+            height: auto;              /* tinggi ikuti konten */
+            min-height: 100%;
             display: flex; flex-direction: column;
             position: relative;
         }
         body.dark-mode .reader-paper { background-color: #1e1e1e; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4); }
         body.sepia-mode .reader-paper { background-color: #fdf6e3; }
 
-        /* story-text mengisi sisa ruang, tidak overflow */
+        /* story-text mengisi sisa ruang, bisa discroll */
         #story-text {
             flex: 1;
-            overflow: hidden;
+            overflow: visible;
             min-height: 0;
         }
+
+        .reader-paper-wrap::-webkit-scrollbar { width: 6px; }
+        .reader-paper-wrap::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+        body.dark-mode .reader-paper-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
         /* Corner page number decoration */
         .reader-paper::after {
@@ -257,7 +262,7 @@
             pointer-events: none; letter-spacing: 0.5px;
         }
 
-        .scroll-top-btn { display: none; } /* tidak perlu di mode per-halaman */
+        .scroll-top-btn { display: none; } /* tampil saat scrolled via JS */
 
         /* ===== PAGE NAVIGATION BAR (Minimalist) ===== */
         .page-nav-bar {
@@ -1242,17 +1247,22 @@
 
     function setupReadProgress(paperEl) {
         document.getElementById('readProgressWrap').classList.add('visible');
-        paperEl.addEventListener('scroll', () => {
-            const total = paperEl.scrollHeight - paperEl.clientHeight;
-            document.getElementById('readProgress').style.width = (total > 0 ? (paperEl.scrollTop/total)*100 : 0).toFixed(1) + '%';
+        // Di desktop: scroll terjadi di reader-paper-wrap; di mobile: di paperEl itu sendiri
+        const scrollEl = (!isMobile() && paperEl.parentElement) ? paperEl.parentElement : paperEl;
+        scrollEl.addEventListener('scroll', () => {
+            const total = scrollEl.scrollHeight - scrollEl.clientHeight;
+            document.getElementById('readProgress').style.width = (total > 0 ? (scrollEl.scrollTop/total)*100 : 0).toFixed(1) + '%';
             const btn = paperEl.querySelector('.scroll-top-btn');
-            if (btn) btn.classList.toggle('visible', paperEl.scrollTop > 200);
+            if (btn) btn.classList.toggle('visible', scrollEl.scrollTop > 200);
         });
     }
 
     function scrollPaperToTop() {
         const p = document.getElementById('readerPaper');
-        if (p) p.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!p) return;
+        // Di desktop scroll ada di wrap (parentElement), di mobile di paper itu sendiri
+        const scrollEl = (!isMobile() && p.parentElement) ? p.parentElement : p;
+        scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // ===== INLINE TEXT BOOKMARK =====
@@ -2384,6 +2394,12 @@
 
         // Update nomor halaman di sudut kertas
         if (paper) paper.setAttribute('data-page-label', `${_currentPage + 1} / ${_pages.length}`);
+
+        // Scroll ke atas saat ganti halaman (desktop: scroll di wrap, mobile: di paper)
+        if (paper) {
+            const scrollEl = (!isMobile() && paper.parentElement) ? paper.parentElement : paper;
+            scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
         updatePageNav();
     }
