@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Lora', serif; }
         body { background: #fff; width: 100vw; height: 100vh; overflow: hidden; transition: background 0.3s; }
 
         body.dark-mode { background: #1a1a1a; color: #eee; }
@@ -883,9 +883,6 @@
             .mobile-bottom-nav .mbn-create span {
                 position: relative; z-index: 1;
             }
-            .mobile-bottom-nav .mbn-create i {
-                font-size: 14px; /* perkecil icon dari 18px */
-            }
             .mobile-bottom-nav .mbn-create::before {
                 content: '';
                 position: absolute;
@@ -901,22 +898,6 @@
             body.dark-mode .mobile-bottom-nav .mbn-create::before { background: #e0e0e0; }
             body.dark-mode .mobile-bottom-nav .mbn-create i,
             body.dark-mode .mobile-bottom-nav .mbn-create span { color: #000; }
-
-            /* Hapus highlight biru kotak saat tap di mobile */
-            .mobile-bottom-nav .mbn-item {
-                -webkit-tap-highlight-color: transparent;
-                outline: none;
-            }
-            /* Efek tap minimalis: scale + opacity fade, bukan highlight kotak biru */
-            .mobile-bottom-nav .mbn-item:active {
-                opacity: 0.55;
-                transform: scale(0.92);
-                transition: opacity 0.08s, transform 0.08s;
-            }
-            .mobile-bottom-nav .mbn-create:active {
-                opacity: 0.7;
-                transform: scale(0.9);
-            }
 
             /* Hide the toggle-btn hamburger on mobile since we have bottom nav */
             .toggle-btn { display: none; }
