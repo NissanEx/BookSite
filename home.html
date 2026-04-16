@@ -847,32 +847,64 @@
             .mobile-bottom-nav {
                 display: flex;
                 position: fixed; bottom: 0; left: 0; right: 0; z-index: 250;
-                height: 58px;
+                height: 62px;
                 background: #fff;
                 border-top: 1px solid rgba(0,0,0,0.08);
-                align-items: center; justify-content: space-around;
-                padding: 0 4px;
+                align-items: stretch;
+                justify-content: space-around;
+                padding: 0;
                 padding-bottom: env(safe-area-inset-bottom, 0px);
             }
             body.dark-mode .mobile-bottom-nav  { background: #1a1a1a; border-top-color: rgba(255,255,255,0.08); }
             body.sepia-mode .mobile-bottom-nav { background: #f4ecd8; border-top-color: rgba(0,0,0,0.08); }
             .mobile-bottom-nav .mbn-item {
-                flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-                gap: 3px; cursor: pointer; opacity: 0.4; transition: opacity 0.18s;
-                padding: 6px 0; font-size: 9px; font-weight: 700; text-transform: uppercase;
+                flex: 1;
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                gap: 4px; cursor: pointer; opacity: 0.4; transition: opacity 0.18s;
+                padding: 0;
+                font-size: 9px; font-weight: 700; text-transform: uppercase;
                 letter-spacing: 0.8px; color: inherit; background: none; border: none;
                 font-family: 'Lora', serif;
+                height: 100%;
+                min-width: 0;
             }
-            .mobile-bottom-nav .mbn-item i { font-size: 18px; }
+            .mobile-bottom-nav .mbn-item i { font-size: 18px; line-height: 1; }
+            .mobile-bottom-nav .mbn-item span { line-height: 1; }
             .mobile-bottom-nav .mbn-item.active,
             .mobile-bottom-nav .mbn-item:active { opacity: 1; }
+
+            /* Buat button: pill style tapi tetap sejajar dengan item lain */
             .mobile-bottom-nav .mbn-create {
-                background: #000; color: #fff; border-radius: 12px;
-                padding: 8px 14px; opacity: 1; gap: 2px;
+                opacity: 1;
+                position: relative;
             }
-            body.dark-mode .mobile-bottom-nav .mbn-create { background: #e0e0e0; color: #000; }
+            .mobile-bottom-nav .mbn-create i,
+            .mobile-bottom-nav .mbn-create span {
+                position: relative; z-index: 1;
+            }
+            .mobile-bottom-nav .mbn-create::before {
+                content: '';
+                position: absolute;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                width: 52px; height: 38px;
+                background: #000;
+                border-radius: 12px;
+                z-index: 0;
+            }
+            .mobile-bottom-nav .mbn-create i,
+            .mobile-bottom-nav .mbn-create span { color: #fff; }
+            body.dark-mode .mobile-bottom-nav .mbn-create::before { background: #e0e0e0; }
+            body.dark-mode .mobile-bottom-nav .mbn-create i,
+            body.dark-mode .mobile-bottom-nav .mbn-create span { color: #000; }
+
             /* Hide the toggle-btn hamburger on mobile since we have bottom nav */
             .toggle-btn { display: none; }
+
+            /* Hide bottom nav when in reading mode */
+            .mobile-bottom-nav.reader-hidden {
+                display: none !important;
+            }
         }
 
         /* ======================================================
@@ -1244,6 +1276,9 @@
             rs.style.padding = isMobile() ? '0 16px 80px' : '';
         }
         if (!on) { document.getElementById('readProgressWrap').classList.remove('visible'); document.getElementById('readProgress').style.width = '0%'; }
+        // Hide bottom nav when reading
+        const mbn = document.getElementById('mobileBottomNav');
+        if (mbn) { on ? mbn.classList.add('reader-hidden') : mbn.classList.remove('reader-hidden'); }
     }
 
     function setupReadProgress(paperEl) {
