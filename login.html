@@ -158,6 +158,8 @@
             width: 56px;
         }
 
+
+
         /* Spinner dalam tombol login */
         .btn-login .spinner {
             width: 16px; height: 16px;
@@ -238,8 +240,19 @@
             .form-box { width: 100%; max-width: 400px; }
             .form-box h2 { font-size: 24px; text-align: center; }
             .form-box p.subtitle { text-align: center; margin-bottom: 25px; }
-            .btn-daftar { width: 100%; }
             .container::after { content: ''; display: block; height: 40px; }
+
+            /* Tombol Daftar & Masuk: full width di mobile/tablet */
+            .main-actions { flex-direction: column; gap: 10px; }
+            .btn-daftar { width: 100%; flex-shrink: unset; }
+            .btn-login { flex: unset; width: 100%; }
+            .btn-login::after {
+                content: 'Masuk';
+                font-size: 13px;
+                font-weight: 600;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+            }
         }
     </style>
 
