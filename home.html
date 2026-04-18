@@ -1496,8 +1496,11 @@
             if (noMsg) noMsg.remove();
             const item = document.createElement('div');
             item.className = 'comment-item';
+            const myAv = _avatarCache[username] || '';
             item.innerHTML = `
-                <div class="comment-avatar">${username[0].toUpperCase()}</div>
+                ${myAv
+                    ? `<div class="comment-avatar" style="background:transparent;overflow:hidden;padding:0;"><img src="${myAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`
+                    : `<div class="comment-avatar">${username[0].toUpperCase()}</div>`}
                 <div class="comment-bubble">
                     <div class="c-name">${username}</div>
                     <div class="c-text">${escHtml(text)}</div>
@@ -1950,6 +1953,10 @@
         const avgRating = ratings.length
             ? (ratings.reduce((a,b) => a + b.score, 0) / ratings.length).toFixed(1) : null;
 
+        // Prefetch avatar semua user di komentar + author + user login
+        const commentUsernames = comments.map(c => c.username).filter(Boolean);
+        await prefetchAvatars([...commentUsernames, story.author_username, getUsername()].filter(Boolean));
+
         setReaderMode(true);
         document.getElementById('readProgress').style.width = '0%';
 
@@ -1959,15 +1966,19 @@
 
         const commentsHtml = comments.length === 0
             ? `<div class="no-comments">Belum ada komentar. Jadilah yang pertama! 💬</div>`
-            : comments.map(c => `
+            : comments.map(c => {
+                const cAv = _avatarCache[c.username] || '';
+                return `
                 <div class="comment-item">
-                    <div class="comment-avatar">${c.username[0].toUpperCase()}</div>
+                    ${cAv
+                        ? `<div class="comment-avatar" style="background:transparent;overflow:hidden;padding:0;"><img src="${cAv}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${c.username[0].toUpperCase()}';this.parentElement.style='';"></div>`
+                        : `<div class="comment-avatar">${c.username[0].toUpperCase()}</div>`}
                     <div class="comment-bubble">
                         <div class="c-name">${c.username}</div>
                         <div class="c-text">${escHtml(c.text)}</div>
                         <div class="c-time">${new Date(c.created_at).toLocaleString('id-ID')}</div>
                     </div>
-                </div>`).join('');
+                </div>`; }).join('');
 
         const storyBodyHtml = story.paper_title
             ? `<div class="paper-title">${story.paper_title}</div><div class="paper-content">${story.content||''}</div>`
@@ -2031,7 +2042,9 @@
                             <div class="publisher-divider" style="display:flex;flex-direction:column;gap:5px;">
                                 <div style="font-size:10px;font-weight:700;letter-spacing:1px;opacity:0.5;margin-bottom:2px;">DITERBITKAN OLEH</div>
                                 <div style="display:flex;align-items:center;gap:7px;cursor:pointer;" onclick="viewUserProfile('${escAttr(story.author_username)}')">
-                                    <div class="publisher-avatar">${story.author_username ? story.author_username[0].toUpperCase() : '?'}</div>
+                                    ${(_avatarCache[story.author_username]
+                                        ? `<img src="${_avatarCache[story.author_username]}" style="width:26px;height:26px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+                                        : `<div class="publisher-avatar">${story.author_username ? story.author_username[0].toUpperCase() : '?'}</div>`)}
                                     <span style="font-size:13px;font-weight:600;text-decoration:underline;text-underline-offset:3px;opacity:0.85;">${story.author_username || '—'}</span>
                                 </div>
                                 ${story.genre ? `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.45;">${story.genre}</div>` : ''}
@@ -2057,7 +2070,9 @@
                         <div class="comment-section">
                             <h3>💬 Komentar</h3>
                             <div class="comment-form">
-                                <div class="comment-avatar">${username[0].toUpperCase()}</div>
+                                ${(_avatarCache[username]
+                                    ? `<div class="comment-avatar" style="background:transparent;overflow:hidden;padding:0;"><img src="${_avatarCache[username]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"></div>`
+                                    : `<div class="comment-avatar">${username[0].toUpperCase()}</div>`)}
                                 <div class="comment-input-wrap">
                                     <textarea id="commentInput" rows="2" placeholder="${loggedIn ? 'Tulis komentarmu...' : 'Login untuk berkomentar...'}" ${loggedIn ? '' : 'disabled'}></textarea>
                                     <button class="comment-submit" onclick="submitComment('${id}')">Kirim</button>
@@ -2940,12 +2955,53 @@
     // Cache profil di memory supaya tidak fetch berulang
     let _profileCache = null;
 
+    // ===== AVATAR CACHE GLOBAL =====
+    // Menyimpan avatar_url per username, dipakai di diskusi, komentar, dll.
+    const _avatarCache = {};
+
+    async function getAvatarUrl(username) {
+        if (!username) return '';
+        if (_avatarCache[username] !== undefined) return _avatarCache[username];
+        try {
+            const data = await sbGet('pending_registrations',
+                `username=eq.${encodeURIComponent(username)}&select=avatar_url&limit=1`);
+            const url = (Array.isArray(data) && data[0]?.avatar_url) ? data[0].avatar_url : '';
+            _avatarCache[username] = url;
+            return url;
+        } catch(e) {
+            _avatarCache[username] = '';
+            return '';
+        }
+    }
+
+    // Render avatar HTML — foto jika ada, fallback ke inisial
+    function avatarHtml(username, size = 36, cls = '') {
+        const url = _avatarCache[username] || '';
+        const initial = (username || '?')[0].toUpperCase();
+        const sizeStyle = `width:${size}px;height:${size}px;font-size:${Math.round(size*0.38)}px;`;
+        if (url) {
+            return `<div class="${cls}" style="${sizeStyle}border-radius:50%;overflow:hidden;flex-shrink:0;background:#000;">
+                        <img src="${url}" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML='${initial}'">
+                    </div>`;
+        }
+        return `<div class="${cls}" style="${sizeStyle}border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;">${initial}</div>`;
+    }
+
+    // Prefetch avatar untuk banyak username sekaligus (batch)
+    async function prefetchAvatars(usernames) {
+        const unique = [...new Set(usernames)].filter(u => u && _avatarCache[u] === undefined);
+        if (!unique.length) return;
+        await Promise.all(unique.map(u => getAvatarUrl(u)));
+    }
+
     async function fetchMyProfile() {
         if (_profileCache) return _profileCache;
         const username = getUsername();
         try {
             const data = await sbGet('pending_registrations', `username=eq.${encodeURIComponent(username)}&select=display_name,bio,location,avatar_url&limit=1`);
             _profileCache = Array.isArray(data) && data.length > 0 ? data[0] : {};
+            // Sync ke avatar cache global supaya langsung tersedia di semua tempat
+            if (username) _avatarCache[username] = _profileCache.avatar_url || '';
         } catch(e) { _profileCache = {}; }
         return _profileCache;
     }
@@ -3132,6 +3188,7 @@
 
             // Update cache lokal
             _profileCache = { display_name: displayName, bio, location, avatar_url: avatarUrl };
+            _avatarCache[username] = avatarUrl || '';
 
             updateTopbar();
             closeAccountSettings();
@@ -3313,6 +3370,11 @@
             posts = Array.isArray(data) ? data : [];
         } catch(e) { posts = []; }
 
+        // Prefetch semua avatar sebelum render
+        const allUsernames = [...new Set(posts.map(p => p.username).filter(Boolean))];
+        if (getUsername()) allUsernames.push(getUsername());
+        await prefetchAvatars(allUsernames);
+
         const username = getUsername();
         const isLoggedIn_ = isLoggedIn();
 
@@ -3331,7 +3393,12 @@
 
             ${isLoggedIn_ ? `
             <div class="diskusi-form-card" id="diskusiFormCard">
-                <div class="diskusi-form-title">Mulai diskusi baru</div>
+                <div class="diskusi-form-title" style="display:flex;align-items:center;gap:10px;">
+                    ${(()=>{ const u=getUsername(); const av=_avatarCache[u]||''; return av
+                        ? `<img src="${av}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
+                        : `<div style="width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${u[0]?.toUpperCase()||'?'}</div>`; })()}
+                    <span>Mulai diskusi baru</span>
+                </div>
 
                 <!-- Toolbar: tag cerita + video -->
                 <div class="diskusi-form-toolbar">
@@ -3541,8 +3608,14 @@
 
     function renderDiskusiCards(posts, username) {
         if (!posts.length) return `<div class="diskusi-empty">Belum ada diskusi. Jadilah yang pertama! 💬</div>`;
+        console.log('[Diskusi] Posts loaded:', posts.length, '| Posts dengan video:', posts.filter(p => p.video_url).length);
         return posts.map(p => {
             const initial = (p.username || '?')[0].toUpperCase();
+            const cachedAvatar = _avatarCache[p.username] || '';
+            const avatarEl = cachedAvatar
+                ? `<div class="diskusi-avatar" style="background:transparent;overflow:hidden;padding:0;">
+                       <img src="${cachedAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${initial}';this.parentElement.style='';"></div>`
+                : `<div class="diskusi-avatar">${initial}</div>`;
             const liked = (p.liked_by || []).includes(username);
             const likeCount = (p.liked_by || []).length;
             const replyCount = p.reply_count || 0;
@@ -3569,30 +3642,31 @@
             // Video render (YouTube embed)
             let videoHtml = '';
             if (p.video_url) {
-                // Cek apakah embed URL atau raw YouTube URL
-                const embedSrc = p.video_url.includes('/embed/')
-                    ? p.video_url
-                    : (() => { const m = p.video_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/); return m ? `https://www.youtube.com/embed/${m[1]}` : p.video_url; })();
-
-                if (embedSrc.includes('youtube.com/embed/') || embedSrc.includes('youtu.be/')) {
+                // Ekstrak YouTube ID dari berbagai format URL
+                const ytMatch = p.video_url.match(/(?:youtube\.com\/(?:embed\/|watch\?v=)|youtu\.be\/)([^&\n?#]+)/);
+                if (ytMatch) {
+                    const ytId = ytMatch[1];
                     videoHtml = `
-                    <div class="yt-preview-wrap" style="margin-bottom:10px;">
-                        <iframe src="${escAttr(embedSrc)}" style="width:100%;height:220px;display:block;border:none;"
+                    <div class="yt-preview-wrap" style="margin-bottom:10px;border-radius:10px;overflow:hidden;background:#000;position:relative;">
+                        <iframe src="https://www.youtube.com/embed/${ytId}"
+                            style="width:100%;height:220px;display:block;border:none;"
                             allowfullscreen
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
                         </iframe>
-                        <div class="yt-preview-label"><i class="fa-brands fa-youtube"></i> YouTube</div>
+                        <div class="yt-preview-label" style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,0.7);color:#fff;border-radius:6px;font-size:10px;font-weight:700;padding:3px 8px;display:flex;align-items:center;gap:4px;pointer-events:none;">
+                            <i class="fa-brands fa-youtube" style="color:#ff4444;"></i> YouTube
+                        </div>
                     </div>`;
                 } else {
-                    // fallback: video tag biasa (data lama)
-                    videoHtml = `<video class="diskusi-video" controls preload="metadata" src="${escAttr(p.video_url)}"></video>`;
+                    // fallback: video tag biasa (data lama Supabase Storage)
+                    videoHtml = `<video class="diskusi-video" controls preload="metadata" src="${escAttr(p.video_url)}" style="width:100%;border-radius:10px;background:#000;display:block;max-height:280px;margin-bottom:10px;"></video>`;
                 }
             }
 
             return `
             <div class="diskusi-card" id="dc-${p.id}">
                 <div class="diskusi-card-top">
-                    <div class="diskusi-avatar">${initial}</div>
+                    ${avatarEl}
                     <div class="diskusi-meta">
                         <div class="diskusi-author">${escHtml(p.username || 'Anonim')}</div>
                         <div class="diskusi-time">${timeAgo(p.created_at)}</div>
@@ -3661,6 +3735,8 @@
             if (videoUrl) payload.video_url = videoUrl;
             if (_diskusiTaggedStory) payload.tagged_story = JSON.stringify(_diskusiTaggedStory);
 
+            console.log('[Diskusi] Payload dikirim:', JSON.stringify(payload));
+
             const res = await fetch(`${SUPABASE_URL}/rest/v1/diskusi`, {
                 method: 'POST',
                 headers: { ...SB_HJ, 'Prefer': 'return=minimal' },
@@ -3720,15 +3796,22 @@
                 listEl.innerHTML = `<div style="font-size:12px;opacity:0.35;text-align:center;padding:6px;">Belum ada balasan.</div>`;
                 return;
             }
-            listEl.innerHTML = replies.map(r => `
+            listEl.innerHTML = replies.map(r => {
+                    const rInitial = (r.username||'?')[0].toUpperCase();
+                    const rAvatar = _avatarCache[r.username] || '';
+                    const rAvatarEl = rAvatar
+                        ? `<div class="diskusi-reply-avatar" style="background:transparent;overflow:hidden;padding:0;"><img src="${rAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${rInitial}';this.parentElement.style='';"></div>`
+                        : `<div class="diskusi-reply-avatar">${rInitial}</div>`;
+                    return `
                 <div class="diskusi-reply-item">
-                    <div class="diskusi-reply-avatar">${(r.username||'?')[0].toUpperCase()}</div>
+                    ${rAvatarEl}
                     <div class="diskusi-reply-bubble">
                         <div class="diskusi-reply-name">${escHtml(r.username||'Anonim')}</div>
                         <div class="diskusi-reply-text">${escHtml(r.body)}</div>
                         <div class="diskusi-reply-time">${timeAgo(r.created_at)}</div>
                     </div>
-                </div>`).join('');
+                </div>`;
+                }).join('');
         } catch(e) {
             listEl.innerHTML = `<div style="font-size:12px;opacity:0.35;text-align:center;">Gagal memuat balasan.</div>`;
         }
@@ -3770,15 +3853,22 @@
             if (listEl) {
                 const newData = await sbGet('diskusi_replies', `post_id=eq.${postId}&order=created_at.asc&select=*`);
                 const replies = Array.isArray(newData) ? newData : [];
-                listEl.innerHTML = replies.map(r => `
+                listEl.innerHTML = replies.map(r => {
+                        const rInitial = (r.username||'?')[0].toUpperCase();
+                        const rAvatar = _avatarCache[r.username] || '';
+                        const rAvatarEl = rAvatar
+                            ? `<div class="diskusi-reply-avatar" style="background:transparent;overflow:hidden;padding:0;"><img src="${rAvatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${rInitial}';this.parentElement.style='';"></div>`
+                            : `<div class="diskusi-reply-avatar">${rInitial}</div>`;
+                        return `
                     <div class="diskusi-reply-item">
-                        <div class="diskusi-reply-avatar">${(r.username||'?')[0].toUpperCase()}</div>
+                        ${rAvatarEl}
                         <div class="diskusi-reply-bubble">
                             <div class="diskusi-reply-name">${escHtml(r.username||'Anonim')}</div>
                             <div class="diskusi-reply-text">${escHtml(r.body)}</div>
                             <div class="diskusi-reply-time">${timeAgo(r.created_at)}</div>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                    }).join('');
             }
             toast('Balasan terkirim!');
         } catch(e) { toast('Gagal mengirim balasan.'); }
@@ -3813,6 +3903,7 @@
             const data = await sbGet('diskusi', q);
             posts = Array.isArray(data) ? data : [];
         } catch(e) { posts = []; }
+        await prefetchAvatars(posts.map(p => p.username).filter(Boolean));
         list.innerHTML = renderDiskusiCards(posts, getUsername());
     }
 
