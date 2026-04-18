@@ -720,6 +720,68 @@
         #story-text p { margin-bottom: 1.5em; }
         #story-text .cover-bar, #story-text .inline-img-wrapper button { display: none !important; }
 
+        /* ===== SEARCH USERS PAGE ===== */
+        .search-users-wrap { max-width: 640px; margin: 0 auto; padding-top: 32px; animation: fadeIn 0.4s ease; }
+        .search-users-wrap h2 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+        .search-users-wrap p { font-size: 13px; opacity: 0.5; margin-bottom: 22px; }
+        .user-search-bar-wrap {
+            display: flex; align-items: center; gap: 10px;
+            border: 1.5px solid rgba(0,0,0,0.12); border-radius: 12px;
+            padding: 10px 16px; margin-bottom: 24px; background: transparent;
+            transition: border-color 0.2s;
+        }
+        .user-search-bar-wrap:focus-within { border-color: #000; }
+        body.dark-mode .user-search-bar-wrap { border-color: rgba(255,255,255,0.14); }
+        body.dark-mode .user-search-bar-wrap:focus-within { border-color: #fff; }
+        body.sepia-mode .user-search-bar-wrap:focus-within { border-color: #5b4636; }
+        .user-search-bar-wrap i { opacity: 0.35; font-size: 15px; flex-shrink: 0; }
+        .user-search-input {
+            flex: 1; border: none; background: transparent; outline: none;
+            font-size: 14px; font-family: 'Lora', serif; color: inherit;
+        }
+        .user-search-input::placeholder { opacity: 0.38; }
+        .user-result-list { display: flex; flex-direction: column; gap: 10px; }
+        .user-result-card {
+            display: flex; align-items: center; gap: 14px;
+            padding: 14px 16px; border-radius: 12px;
+            border: 1.5px solid rgba(0,0,0,0.07); cursor: pointer;
+            transition: background 0.18s, transform 0.15s;
+            background: transparent;
+        }
+        .user-result-card:hover { background: rgba(0,0,0,0.03); transform: translateY(-2px); }
+        body.dark-mode .user-result-card { border-color: rgba(255,255,255,0.08); }
+        body.dark-mode .user-result-card:hover { background: rgba(255,255,255,0.04); }
+        .user-result-avatar {
+            width: 48px; height: 48px; border-radius: 50%; background: #000; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: 700; flex-shrink: 0; overflow: hidden;
+        }
+        body.dark-mode .user-result-avatar { background: #e0e0e0; color: #000; }
+        .user-result-info { flex: 1; min-width: 0; }
+        .user-result-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-result-username { font-size: 12px; opacity: 0.45; }
+        .user-result-bio { font-size: 12px; opacity: 0.55; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .user-result-meta { font-size: 11px; opacity: 0.4; flex-shrink: 0; text-align: right; }
+        .user-search-empty { text-align: center; padding: 48px 20px; opacity: 0.38; font-size: 14px; }
+        .user-search-hint { text-align: center; padding: 40px 20px; opacity: 0.35; font-size: 13px; }
+
+        /* ===== PROFILE TABS ===== */
+        .profile-tabs {
+            display: flex; gap: 0; border-bottom: 1.5px solid rgba(0,0,0,0.08);
+            margin-bottom: 28px; margin-top: 8px;
+        }
+        body.dark-mode .profile-tabs { border-bottom-color: rgba(255,255,255,0.1); }
+        .profile-tab {
+            padding: 10px 20px; font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.2px; cursor: pointer;
+            border: none; background: transparent; color: inherit;
+            opacity: 0.4; border-bottom: 2px solid transparent;
+            transition: opacity 0.2s, border-color 0.2s; font-family: 'Lora', serif;
+            margin-bottom: -1.5px;
+        }
+        .profile-tab:hover { opacity: 0.8; }
+        .profile-tab.active { opacity: 1; border-bottom-color: currentColor; }
+
         /* ===== ACCOUNT SETTINGS MODAL ===== */
         #accountSettingsOverlay {
             display: none; position: fixed; inset: 0; z-index: 9100;
@@ -1197,6 +1259,7 @@
             <div class="nav-item" id="nav-most-read" onclick="loadCategory('most-read')">Banyak Dibaca</div>
             <div class="nav-item" id="nav-recent" onclick="loadCategory('recent')">Baru Diperbarui</div>
             <div class="nav-item" id="nav-bookmarks" onclick="loadBookmarks()">Ditandai</div>
+            <div class="nav-item" id="nav-search-users" onclick="loadSearchUsers()">Cari Akun</div>
             <div class="nav-item" id="nav-diskusi" onclick="loadDiskusi()">Ruang Diskusi</div>
             <div class="nav-item" id="nav-ai" onclick="openAIChat()">Tanya AI</div>
             <button class="create-btn" onclick="goCreate()">+ Buat Cerita</button>
@@ -1219,8 +1282,8 @@
                 <button class="cat-btn" id="cat-recent" onclick="loadCategory('recent');setCatActive('cat-recent')">
                     <i class="fa-solid fa-clock-rotate-left"></i> Terbaru
                 </button>
-                <button class="cat-btn" id="cat-bookmarks" onclick="loadBookmarks();setCatActive('cat-bookmarks')">
-                    <i class="fa-solid fa-bookmark"></i> Ditandai
+                <button class="cat-btn" id="cat-search-users" onclick="loadSearchUsers();setCatActive('cat-search-users')">
+                    <i class="fa-solid fa-user-magnifying-glass"></i> Cari Akun
                 </button>
                 <button class="cat-btn" id="cat-diskusi" onclick="loadDiskusi();setCatActive('cat-diskusi')">
                     <i class="fa-solid fa-comments"></i> Diskusi
@@ -1275,9 +1338,9 @@
         <i class="fa-solid fa-fire"></i>
         <span>Populer</span>
     </button>
-    <button class="mbn-item" id="mbn-bookmarks" onclick="loadBookmarks();setMbnActive('mbn-bookmarks')">
-        <i class="fa-solid fa-bookmark"></i>
-        <span>Ditandai</span>
+    <button class="mbn-item" id="mbn-search-users" onclick="loadSearchUsers();setMbnActive('mbn-search-users')">
+        <i class="fa-solid fa-user-magnifying-glass"></i>
+        <span>Cari Akun</span>
     </button>
     <button class="mbn-item mbn-create" onclick="goCreate()">
         <i class="fa-solid fa-pen-nib"></i>
@@ -2180,7 +2243,7 @@
 
         content.innerHTML = `
             <div style="animation:fadeIn 0.5s ease;max-width:800px;margin:0 auto;padding-top:40px;">
-                <div style="display:flex;align-items:center;gap:30px;margin-bottom:50px;">
+                <div style="display:flex;align-items:center;gap:30px;margin-bottom:36px;">
                     <div style="width:120px;height:120px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:600;overflow:hidden;flex-shrink:0;box-shadow:0 6px 24px rgba(0,0,0,0.14);">${avatarHtml}</div>
                     <div>
                         <h1 style="font-size:32px;margin-bottom:4px;">${escHtml(profile.display_name || currentUser)}</h1>
@@ -2199,23 +2262,185 @@
                         </div>
                     </div>
                 </div>
-                ${pendingList.length>0?`
-                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:32px;display:flex;align-items:center;gap:14px;">
-                    <span style="font-size:24px;">⏳</span>
-                    <div><p style="font-weight:600;font-size:14px;margin-bottom:3px;">${pendingList.length} cerita menunggu persetujuan admin</p><p style="font-size:12px;opacity:0.6;">Cerita akan muncul di beranda setelah disetujui.</p></div>
+
+                <!-- TABS -->
+                <div class="profile-tabs">
+                    <button class="profile-tab active" id="ptab-cerita" onclick="switchProfileTab('cerita')">📚 Cerita Saya</button>
+                    <button class="profile-tab" id="ptab-ditandai" onclick="switchProfileTab('ditandai')">📌 Ditandai</button>
                 </div>
-                <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:12px;margin-bottom:20px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.5;">Menunggu Persetujuan</h3>
-                <div class="grid-list" style="margin-top:0;margin-bottom:40px;">${pendingList.map(s=>card(s,true)).join('')}</div>`:''}
-                ${rejectList.length>0?`
-                <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:12px;margin-bottom:20px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.5;">Perlu Revisi</h3>
-                <div class="grid-list" style="margin-top:0;margin-bottom:40px;">${rejectList.map(s=>card(s,true)).join('')}</div>`:''}
-                <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:15px;margin-bottom:25px;">Cerita Terbit</h3>
-                ${publishList.length===0
-                    ?'<p style="opacity:0.4;text-align:center;padding:40px;">Belum ada cerita yang diterbitkan.</p>'
-                    :`<div class="grid-list">${publishList.map(s=>card(s,true)).join('')}</div>`}
+
+                <!-- TAB CONTENT: CERITA -->
+                <div id="ptab-content-cerita">
+                    ${pendingList.length>0?`
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:32px;display:flex;align-items:center;gap:14px;">
+                        <span style="font-size:24px;">⏳</span>
+                        <div><p style="font-weight:600;font-size:14px;margin-bottom:3px;">${pendingList.length} cerita menunggu persetujuan admin</p><p style="font-size:12px;opacity:0.6;">Cerita akan muncul di beranda setelah disetujui.</p></div>
+                    </div>
+                    <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:12px;margin-bottom:20px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.5;">Menunggu Persetujuan</h3>
+                    <div class="grid-list" style="margin-top:0;margin-bottom:40px;">${pendingList.map(s=>card(s,true)).join('')}</div>`:''}
+                    ${rejectList.length>0?`
+                    <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:12px;margin-bottom:20px;font-size:14px;text-transform:uppercase;letter-spacing:1.5px;opacity:0.5;">Perlu Revisi</h3>
+                    <div class="grid-list" style="margin-top:0;margin-bottom:40px;">${rejectList.map(s=>card(s,true)).join('')}</div>`:''}
+                    <h3 style="border-bottom:1px solid rgba(0,0,0,0.05);padding-bottom:15px;margin-bottom:25px;">Cerita Terbit</h3>
+                    ${publishList.length===0
+                        ?'<p style="opacity:0.4;text-align:center;padding:40px;">Belum ada cerita yang diterbitkan.</p>'
+                        :`<div class="grid-list">${publishList.map(s=>card(s,true)).join('')}</div>`}
+                </div>
+
+                <!-- TAB CONTENT: DITANDAI -->
+                <div id="ptab-content-ditandai" style="display:none;">
+                    ${renderBookmarkTab()}
+                </div>
             </div>`;
 
         applyMobileProfileLayout();
+    }
+
+    // ===== PROFILE TABS =====
+    function switchProfileTab(tab) {
+        ['cerita','ditandai'].forEach(t => {
+            document.getElementById(`ptab-${t}`)?.classList.toggle('active', t === tab);
+            const c = document.getElementById(`ptab-content-${t}`);
+            if (c) c.style.display = t === tab ? '' : 'none';
+        });
+        if (tab === 'ditandai') {
+            const el = document.getElementById('ptab-content-ditandai');
+            if (el) el.innerHTML = renderBookmarkTab();
+        }
+    }
+
+    function renderBookmarkTab() {
+        const bm = getBookmarks();
+        if (bm.length === 0) return `
+            <div style="text-align:center;padding:60px 20px;">
+                <div style="font-size:40px;margin-bottom:14px;">📌</div>
+                <p style="opacity:0.45;font-size:14px;">Belum ada cerita yang ditandai.<br>Klik <b>🔖 Tandai</b> di halaman cerita untuk menyimpannya di sini.</p>
+            </div>`;
+        return `
+            <div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                    <p style="font-size:13px;opacity:0.5;">${bm.length} cerita tersimpan</p>
+                    <button onclick="clearAllBookmarksProfile()" style="padding:5px 14px;background:transparent;border:1px solid rgba(0,0,0,0.15);border-radius:6px;cursor:pointer;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:inherit;opacity:0.6;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">Hapus Semua</button>
+                </div>
+                <div class="grid-list">
+                    ${bm.map(b => `
+                        <div class="card" onclick="loadStory('${escAttr(String(b.id))}')">
+                            <div class="icon-box"><i class="fa-solid fa-book"></i></div>
+                            <h3>${escHtml(b.title || 'Judul tidak tersedia')}</h3>
+                            <p style="font-size:13px;opacity:0.5;">${escHtml(b.author || '')}</p>
+                            <button onclick="event.stopPropagation();removeBookmarkProfile('${escAttr(String(b.id))}')"
+                                style="margin-top:8px;padding:4px 10px;border-radius:20px;border:1.5px solid #fecaca;background:transparent;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;"
+                                onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                                🗑 Hapus
+                            </button>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+    }
+
+    function removeBookmarkProfile(id) {
+        saveBookmarks(getBookmarks().filter(b => String(b.id) !== String(id)));
+        toast('Tanda dihapus.');
+        const el = document.getElementById('ptab-content-ditandai');
+        if (el) el.innerHTML = renderBookmarkTab();
+    }
+
+    function clearAllBookmarksProfile() {
+        if (!confirm('Hapus semua bookmark? Tindakan ini tidak bisa dibatalkan.')) return;
+        saveBookmarks([]);
+        toast('Semua bookmark dihapus.');
+        const el = document.getElementById('ptab-content-ditandai');
+        if (el) el.innerHTML = renderBookmarkTab();
+    }
+
+    // ===== SEARCH USERS =====
+    async function loadSearchUsers() {
+        setReaderMode(false);
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        const navEl = document.getElementById('nav-search-users');
+        if (navEl) navEl.classList.add('active');
+
+        const content = document.getElementById('dynamic-content');
+        content.innerHTML = `
+            <div class="search-users-wrap">
+                <h2>🔍 Cari Akun</h2>
+                <p>Temukan penulis dan pembaca di Open Your Book</p>
+                <div class="user-search-bar-wrap">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" class="user-search-input" id="userSearchInput"
+                        placeholder="Ketik nama atau username..."
+                        oninput="onUserSearchInput(this.value)"
+                        autocomplete="off">
+                    <i class="fa-solid fa-xmark" style="cursor:pointer;opacity:0.3;font-size:13px;"
+                        onclick="document.getElementById('userSearchInput').value='';onUserSearchInput('');"></i>
+                </div>
+                <div id="userSearchResults">
+                    <div class="user-search-hint">
+                        <i class="fa-solid fa-users" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                        Mulai ketik untuk mencari akun
+                    </div>
+                </div>
+            </div>`;
+        setTimeout(() => document.getElementById('userSearchInput')?.focus(), 100);
+    }
+
+    let _userSearchTimer = null;
+    async function onUserSearchInput(val) {
+        clearTimeout(_userSearchTimer);
+        const q = val.trim();
+        const results = document.getElementById('userSearchResults');
+        if (!results) return;
+
+        if (!q) {
+            results.innerHTML = `<div class="user-search-hint"><i class="fa-solid fa-users" style="font-size:32px;display:block;margin-bottom:12px;"></i>Mulai ketik untuk mencari akun</div>`;
+            return;
+        }
+        results.innerHTML = `<div class="user-search-hint" style="padding:24px;">Mencari...</div>`;
+
+        _userSearchTimer = setTimeout(async () => {
+            try {
+                const [byUsername, byDisplay] = await Promise.all([
+                    sbGet('pending_registrations', `username=ilike.*${encodeURIComponent(q)}*&select=username,display_name,avatar_url,bio,location&limit=10`),
+                    sbGet('pending_registrations', `display_name=ilike.*${encodeURIComponent(q)}*&select=username,display_name,avatar_url,bio,location&limit=10`)
+                ]);
+                const combined = [...(Array.isArray(byUsername)?byUsername:[]), ...(Array.isArray(byDisplay)?byDisplay:[])];
+                const seen = new Set();
+                const users = combined.filter(u => { if (seen.has(u.username)) return false; seen.add(u.username); return true; });
+
+                if (!users.length) {
+                    results.innerHTML = `<div class="user-search-empty">😔 Tidak ada akun yang cocok dengan "<b>${escHtml(q)}</b>"</div>`;
+                    return;
+                }
+
+                // Simpan avatar ke cache global
+                users.forEach(u => { if (u.avatar_url) _avatarCache[u.username] = u.avatar_url; });
+
+                results.innerHTML = `<div class="user-result-list">
+                    ${users.map(u => {
+                        const av = u.avatar_url || '';
+                        const initial = (u.username||'?')[0].toUpperCase();
+                        const avatarEl = av
+                            ? `<div class="user-result-avatar" style="background:transparent;overflow:hidden;"><img src="${escAttr(av)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.innerHTML='${initial}';this.parentElement.style.background='#000';"></div>`
+                            : `<div class="user-result-avatar">${initial}</div>`;
+                        return `
+                        <div class="user-result-card" onclick="viewUserProfile('${escAttr(u.username)}')">
+                            ${avatarEl}
+                            <div class="user-result-info">
+                                <div class="user-result-name">${escHtml(u.display_name || u.username)}</div>
+                                <div class="user-result-username">@${escHtml(u.username)}</div>
+                                ${u.bio ? `<div class="user-result-bio">${escHtml(u.bio)}</div>` : ''}
+                            </div>
+                            <div class="user-result-meta">
+                                ${u.location ? `<div>📍 ${escHtml(u.location)}</div>` : ''}
+                                <i class="fa-solid fa-chevron-right" style="font-size:10px;opacity:0.3;margin-top:6px;display:block;"></i>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>`;
+            } catch(e) {
+                results.innerHTML = `<div class="user-search-empty">Gagal memuat hasil. Coba lagi.</div>`;
+            }
+        }, 350);
     }
 
     // ===== PROFIL USER LAIN =====
