@@ -453,15 +453,7 @@
         body.dark-mode .diskusi-form-card { border-color: rgba(255,255,255,0.09); background: rgba(255,255,255,0.03); }
         body.sepia-mode .diskusi-form-card { border-color: rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); }
 
-        .diskusi-form-title {
-            font-size: 13px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; opacity: 0.5; margin-bottom: 14px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .diskusi-form-title img,
-        .diskusi-form-title > div[style*="border-radius:50%"] {
-            flex-shrink: 0;
-        }
+        /* .diskusi-form-title replaced by .diskusi-form-header */
         .diskusi-input {
             width: 100%; padding: 11px 14px; border: 1.5px solid rgba(0,0,0,0.1);
             border-radius: 10px; font-size: 14px; font-family: 'Lora', serif;
@@ -1252,6 +1244,67 @@
             .reader-paper-wrap { padding: 14px 20px 0; }
             .reader-outside-wrap { padding: 0 24px 28px; }
             #paperOverlay .fs-content { padding: 40px 48px; }
+        }
+
+
+        /* ===== DISKUSI FORM — RESTRUCTURED ===== */
+        .diskusi-form-header {
+            display: flex; align-items: center; gap: 12px;
+            padding-bottom: 14px;
+        }
+        .diskusi-form-avatar {
+            width: 38px; height: 38px; border-radius: 50%;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .diskusi-form-avatar-initial {
+            background: #000; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px;
+        }
+        body.dark-mode .diskusi-form-avatar-initial { background: #e0e0e0; color: #000; }
+        .diskusi-form-userinfo {
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .diskusi-form-username {
+            font-size: 14px; font-weight: 700; letter-spacing: 0;
+            text-transform: none; opacity: 1;
+        }
+        .diskusi-form-hint {
+            font-size: 11px; opacity: 0.4; font-weight: 400;
+            text-transform: none; letter-spacing: 0;
+        }
+        .diskusi-form-divider {
+            height: 1px; background: rgba(0,0,0,0.07);
+            margin-bottom: 14px;
+        }
+        body.dark-mode .diskusi-form-divider { background: rgba(255,255,255,0.08); }
+
+        .diskusi-form-bottom {
+            display: flex; align-items: center;
+            justify-content: space-between; gap: 8px;
+            margin-top: 6px; flex-wrap: wrap;
+        }
+        .diskusi-form-bottom .diskusi-form-toolbar {
+            margin: 0; flex: 1; min-width: 0;
+        }
+        .diskusi-form-bottom .diskusi-form-row {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 640px) {
+            .diskusi-form-bottom {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .diskusi-form-bottom .diskusi-form-toolbar {
+                width: 100%;
+            }
+            .diskusi-form-bottom .diskusi-form-row {
+                display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+            }
+            .diskusi-form-avatar { width: 34px; height: 34px; }
+            .diskusi-form-username { font-size: 13px; }
         }
 
         /* ===== CLEAN MODE (topbar + filter strip hidden on non-browse pages) ===== */
@@ -2885,12 +2938,15 @@
     }
 
     function filterStories() {
+        // Jangan jalankan di laman non-browse (search-users, diskusi, profil, reader)
+        const _av = getActiveView();
+        if (_av === 'search-users' || _av === 'diskusi') return;
+        if (document.querySelector('.reading-layout')) return;
+
         const q = document.getElementById('searchBar').value.toLowerCase().trim();
-        // Jika ada search query dan sedang di halaman kategori (bukan reader), tampilkan hasil
         if (q.length >= 1) {
             showSearchResults(q);
         } else {
-            // Kalau kosong, hide filter panel (biarkan kategori sekarang)
             const sfPanel = document.getElementById('searchFilterPanel');
             if (sfPanel) sfPanel.style.display = 'none';
             document.querySelectorAll('.card').forEach(card => { card.style.display = 'block'; });
@@ -3669,22 +3725,22 @@
 
             ${isLoggedIn_ ? `
             <div class="diskusi-form-card" id="diskusiFormCard">
-                <div class="diskusi-form-title">
+
+                <!-- Header: avatar + nama -->
+                <div class="diskusi-form-header">
                     ${(()=>{ const u=getUsername(); const av=_avatarCache[u]||''; return av
-                        ? `<img src="${av}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
-                        : `<div style="width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${u[0]?.toUpperCase()||'?'}</div>`; })()}
-                    <span>Mulai diskusi baru</span>
+                        ? `<img src="${av}" class="diskusi-form-avatar">`
+                        : `<div class="diskusi-form-avatar diskusi-form-avatar-initial">${u[0]?.toUpperCase()||'?'}</div>`; })()}
+                    <div class="diskusi-form-userinfo">
+                        <span class="diskusi-form-username">${getUsername()}</span>
+                        <span class="diskusi-form-hint">Apa yang ingin kamu diskusikan?</span>
+                    </div>
                 </div>
 
-                <!-- Toolbar: tag cerita + video -->
-                <div class="diskusi-form-toolbar">
-                    <button class="diskusi-tool-btn" id="btnTagCerita" onclick="toggleDiskusiStorySearch()">
-                        <i class="fa-solid fa-book-open"></i> Tag Cerita
-                    </button>
-                    <button class="diskusi-tool-btn" id="btnUploadVideo" onclick="toggleDiskusiVideo()">
-                        <i class="fa-brands fa-youtube"></i> Link YouTube
-                    </button>
-                </div>
+                <div class="diskusi-form-divider"></div>
+
+                <!-- Textarea -->
+                <textarea class="diskusi-input" id="diskusiNewInput" placeholder="Tulis diskusimu di sini..." maxlength="500" oninput="updateDiskusiChar(this)"></textarea>
 
                 <!-- Tag cerita: search dropdown -->
                 <div id="diskusiStorySearchWrap" style="display:none;">
@@ -3719,11 +3775,22 @@
                     </div>
                 </div>
 
-                <textarea class="diskusi-input" id="diskusiNewInput" placeholder="Apa yang ingin kamu diskusikan?" maxlength="500" oninput="updateDiskusiChar(this)"></textarea>
-                <div class="diskusi-form-row">
-                    <span class="diskusi-char" id="diskusiCharCount">0 / 500</span>
-                    <button class="diskusi-submit" onclick="submitDiskusi()">Kirim</button>
+                <!-- Bottom row: toolbar kiri + submit kanan -->
+                <div class="diskusi-form-bottom">
+                    <div class="diskusi-form-toolbar">
+                        <button class="diskusi-tool-btn" id="btnTagCerita" onclick="toggleDiskusiStorySearch()">
+                            <i class="fa-solid fa-book-open"></i> Tag Cerita
+                        </button>
+                        <button class="diskusi-tool-btn" id="btnUploadVideo" onclick="toggleDiskusiVideo()">
+                            <i class="fa-brands fa-youtube"></i> Link YouTube
+                        </button>
+                    </div>
+                    <div class="diskusi-form-row">
+                        <span class="diskusi-char" id="diskusiCharCount">0 / 500</span>
+                        <button class="diskusi-submit" onclick="submitDiskusi()">Kirim</button>
+                    </div>
                 </div>
+
             </div>
             ` : `<div style="padding:14px 18px;border-radius:12px;background:rgba(0,0,0,0.03);font-size:13px;opacity:0.6;margin-bottom:24px;text-align:center;">
                 <a href="login.html" style="color:inherit;font-weight:700;text-decoration:underline;">Login</a> untuk ikut berdiskusi.
