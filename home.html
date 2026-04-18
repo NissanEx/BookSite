@@ -455,7 +455,12 @@
 
         .diskusi-form-title {
             font-size: 13px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; opacity: 0.5; margin-bottom: 12px;
+            letter-spacing: 1px; opacity: 0.5; margin-bottom: 14px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .diskusi-form-title img,
+        .diskusi-form-title > div[style*="border-radius:50%"] {
+            flex-shrink: 0;
         }
         .diskusi-input {
             width: 100%; padding: 11px 14px; border: 1.5px solid rgba(0,0,0,0.1);
@@ -559,7 +564,22 @@
         @media (max-width: 640px) {
             .diskusi-wrap { padding: 0 0 40px; }
             .diskusi-card { padding: 14px 16px; }
-            .diskusi-form-card { padding: 14px 16px; }
+            .diskusi-form-card { padding: 16px 14px; }
+            .diskusi-form-toolbar {
+                gap: 6px;
+                margin-top: 8px;
+                margin-bottom: 12px;
+            }
+            .diskusi-tool-btn {
+                padding: 7px 11px;
+                font-size: 10.5px;
+                flex: 1;
+                justify-content: center;
+            }
+            .diskusi-input { margin-top: 4px; }
+            .diskusi-form-title { margin-bottom: 10px; }
+            .diskusi-filters { gap: 6px; margin-bottom: 16px; }
+            .diskusi-filter-btn { padding: 5px 11px; font-size: 10px; }
         }
 
         /* ── TAG CERITA DI DISKUSI ── */
@@ -666,7 +686,8 @@
 
         /* Diskusi form toolbar row */
         .diskusi-form-toolbar {
-            display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap;
+            display: flex; align-items: center; gap: 8px;
+            margin-top: 4px; margin-bottom: 14px; flex-wrap: wrap;
         }
         .diskusi-tool-btn {
             display: flex; align-items: center; gap: 5px; padding: 6px 12px;
@@ -2381,6 +2402,7 @@
 
     // ===== SEARCH USERS =====
     async function loadSearchUsers() {
+        saveActiveView('search-users');
         setReaderMode(false);
         setCleanMode(true);
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -3647,7 +3669,7 @@
 
             ${isLoggedIn_ ? `
             <div class="diskusi-form-card" id="diskusiFormCard">
-                <div class="diskusi-form-title" style="display:flex;align-items:center;gap:10px;">
+                <div class="diskusi-form-title">
                     ${(()=>{ const u=getUsername(); const av=_avatarCache[u]||''; return av
                         ? `<img src="${av}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;">`
                         : `<div style="width:32px;height:32px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;">${u[0]?.toUpperCase()||'?'}</div>`; })()}
@@ -4247,6 +4269,8 @@
         const _savedView = getActiveView();
         if (_savedView === 'diskusi') {
             loadDiskusi();
+        } else if (_savedView === 'search-users') {
+            loadSearchUsers();
         } else if (_savedView && _savedView.startsWith('category:')) {
             loadCategory(_savedView.replace('category:', ''));
         } else {
