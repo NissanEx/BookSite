@@ -1232,6 +1232,18 @@
             .reader-outside-wrap { padding: 0 24px 28px; }
             #paperOverlay .fs-content { padding: 40px 48px; }
         }
+
+        /* ===== CLEAN MODE (topbar + filter strip hidden on non-browse pages) ===== */
+        .global-topbar.topbar-hidden {
+            display: none !important;
+        }
+        #catFilterStrip.strip-hidden {
+            display: none !important;
+        }
+        /* When topbar is hidden, outer-wrapper gets extra space */
+        .outer-wrapper.topbar-hidden-mode .right-topbar {
+            border-bottom: none;
+        }
     </style>
     <script src="/_vercel/insights/script.js"></script>
 </head>
@@ -1339,8 +1351,8 @@
         <span>Populer</span>
     </button>
     <button class="mbn-item" id="mbn-search-users" onclick="loadSearchUsers();setMbnActive('mbn-search-users')">
-        <i class="fa-solid fa-user-magnifying-glass"></i>
-        <span>Cari Akun</span>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Cari</span>
     </button>
     <button class="mbn-item mbn-create" onclick="goCreate()">
         <i class="fa-solid fa-pen-nib"></i>
@@ -1624,6 +1636,18 @@
         // Hide bottom nav when reading
         const mbn = document.getElementById('mobileBottomNav');
         if (mbn) { on ? mbn.classList.add('reader-hidden') : mbn.classList.remove('reader-hidden'); }
+    }
+
+
+    // Sembunyikan global search topbar + cat filter di laman non-browse (diskusi, cari akun, profil)
+    function setCleanMode(on) {
+        const topbar = document.querySelector('.global-topbar');
+        const strip  = document.getElementById('catFilterStrip');
+        const outer  = document.querySelector('.outer-wrapper');
+        if (!isMobile()) return; // hanya mobile
+        if (topbar) topbar.classList.toggle('topbar-hidden', on);
+        if (strip)  strip.classList.toggle('strip-hidden', on);
+        if (outer)  outer.classList.toggle('topbar-hidden-mode', on);
     }
 
     function setupReadProgress(paperEl) {
@@ -1955,6 +1979,7 @@
     }
 
     async function loadCategory(cat) {
+        setCleanMode(false);
         currentCategory = cat;
         _currentSort = cat === 'recent' ? 'newest' : 'default';
         _priceFilter = 'all';
@@ -2191,6 +2216,7 @@
 
     // ===== PROFILE =====
     async function viewProfile() {
+        setCleanMode(true);
         setReaderMode(false);
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         if (!isLoggedIn()) { window.location.href = 'login.html'; return; }
@@ -2356,6 +2382,7 @@
     // ===== SEARCH USERS =====
     async function loadSearchUsers() {
         setReaderMode(false);
+        setCleanMode(true);
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         const navEl = document.getElementById('nav-search-users');
         if (navEl) navEl.classList.add('active');
@@ -2451,6 +2478,7 @@
         if (isLoggedIn() && username === getUsername()) { viewProfile(); return; }
 
         setReaderMode(false);
+        setCleanMode(true);
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
         const content = document.getElementById('dynamic-content');
@@ -3585,6 +3613,7 @@
     async function loadDiskusi(preTagStory = null) {
         saveActiveView('diskusi');
         setReaderMode(false);
+        setCleanMode(true);
         setNavActive('nav-diskusi');
         const content = document.getElementById('dynamic-content');
         content.innerHTML = `<div class="diskusi-loading">Memuat diskusi...</div>`;
