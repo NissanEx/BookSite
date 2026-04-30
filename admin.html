@@ -750,10 +750,10 @@
                         <p>Tinjau dan kelola cerita yang dikirim pengguna.</p>
                     </div>
                     <div class="filter-bar">
-                        <button class="filter-btn active" id="sfPending"   onclick="setStoriesFilter('pending')">⏳ Ajuan</button>
+                        <button class="filter-btn"         id="sfPending"   onclick="setStoriesFilter('pending')">⏳ Ajuan</button>
                         <button class="filter-btn"         id="sfPublished" onclick="setStoriesFilter('published')">✅ Diterbitkan</button>
                         <button class="filter-btn"         id="sfRejected"  onclick="setStoriesFilter('rejected')">✕ Ditolak</button>
-                        <button class="filter-btn"         id="sfAll"       onclick="setStoriesFilter('all')">Semua</button>
+                        <button class="filter-btn active"  id="sfAll"       onclick="setStoriesFilter('all')">Semua</button>
                         <button class="filter-btn" onclick="loadStories()" style="padding:8px 18px;">↺ Refresh</button>
                     </div>
                 </div>
@@ -851,7 +851,7 @@ const ADMIN_CREDENTIALS = [
 let allRegistrations = [];
 let allStories       = [];
 let currentFilter    = 'all';
-let storiesFilter    = 'pending';
+let storiesFilter    = 'all';
 let pendingAction    = null; // { type, id, username }
 
 // ════════════════════════════════════════════
@@ -1191,7 +1191,7 @@ async function loadStories() {
 
     try {
         const res  = await fetch(
-            `${SUPABASE_URL}/rest/v1/stories?select=*&order=created_at.desc&limit=100`,
+            `${SUPABASE_URL}/rest/v1/stories?select=*&order=submitted_at.desc&limit=100`,
             { headers: sbHeaders() }
         );
         const data = await res.json();
@@ -1257,7 +1257,7 @@ function renderStories() {
                     ${s.genre  ? `<span class="story-tag">${escHtml(s.genre)}</span>`  : ''}
                     ${s.status ? `<span class="story-tag">${escHtml(s.status)}</span>` : ''}
                 </div>
-                <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${timeAgo(s.created_at)}</span>
+                <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${timeAgo(s.submitted_at || s.created_at)}</span>
             </div>
         </div>`;
     }).join('');
