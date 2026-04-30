@@ -1199,9 +1199,11 @@ async function loadStories() {
 }
 
 function renderStories() {
+    // Cerita tanpa status dianggap 'pending' (fallback untuk data lama)
+    const normalised = allStories.map(s => ({ ...s, status: s.status || 'pending' }));
     const filtered = storiesFilter === 'all'
-        ? allStories
-        : allStories.filter(s => (s.status || 'pending') === storiesFilter);
+        ? normalised
+        : normalised.filter(s => s.status === storiesFilter);
 
     const list = document.getElementById('storyList');
 
@@ -1215,6 +1217,8 @@ function renderStories() {
     }
 
     list.innerHTML = filtered.map(s => {
+        // Pastikan status selalu ada untuk render
+        s = { ...s, status: s.status || 'pending' };
         const excerpt = s.content
             ? s.content.replace(/<[^>]*>/g, '').substring(0, 180) + '…'
             : s.description || 'Tidak ada deskripsi.';

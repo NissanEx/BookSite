@@ -2344,6 +2344,14 @@
 
         content.innerHTML = `
             <div style="animation:fadeIn 0.5s ease;max-width:800px;margin:0 auto;padding-top:40px;">
+                ${!isAccountApproved() ? `
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:14px;">
+                    <span style="font-size:24px;">⏳</span>
+                    <div>
+                        <p style="font-weight:600;font-size:14px;margin-bottom:3px;">Akun kamu sedang menunggu persetujuan admin</p>
+                        <p style="font-size:12px;opacity:0.6;">Beberapa fitur (seperti membuat cerita) baru bisa digunakan setelah akun disetujui. Silakan tunggu konfirmasi dari admin.</p>
+                    </div>
+                </div>` : ''}
                 <div style="display:flex;align-items:center;gap:30px;margin-bottom:36px;">
                     <div style="width:120px;height:120px;border-radius:50%;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:600;overflow:hidden;flex-shrink:0;box-shadow:0 6px 24px rgba(0,0,0,0.14);">${avatarHtml}</div>
                     <div>
@@ -3250,8 +3258,14 @@
     function isLoggedIn() { return localStorage.getItem('isLogin') === 'true'; }
     function getUsername() { return localStorage.getItem('username') || 'Tamu'; }
 
-    function goCreate() {
+    async function goCreate() {
         if (!isLoggedIn()) { localStorage.setItem('redirectAfterLogin','CreateBook.html'); window.location.href = 'login.html'; return; }
+        // Pastikan profil sudah dimuat sebelum cek status
+        await fetchMyProfile();
+        if (!isAccountApproved()) {
+            toast('Akun kamu belum disetujui admin. Silakan tunggu konfirmasi sebelum membuat cerita.');
+            return;
+        }
         window.location.href = 'CreateBook.html';
     }
 
@@ -3330,7 +3344,7 @@
         if (_profileCache) return _profileCache;
         const username = getUsername();
         try {
-            const data = await sbGet('pending_registrations', `username=eq.${encodeURIComponent(username)}&select=display_name,bio,location,avatar_url&limit=1`);
+            const data = await sbGet('pending_registrations', `username=eq.${encodeURIComponent(username)}&select=display_name,bio,location,avatar_url,status&limit=1`);
             _profileCache = Array.isArray(data) && data.length > 0 ? data[0] : {};
             // Sync ke avatar cache global supaya langsung tersedia di semua tempat
             if (username) _avatarCache[username] = _profileCache.avatar_url || '';
@@ -3342,6 +3356,7 @@
     function getProfileDisplayName() { return _profileCache?.display_name || ''; }
     function getProfileBio()         { return _profileCache?.bio          || ''; }
     function getProfileLocation()    { return _profileCache?.location     || ''; }
+    function isAccountApproved()     { return (_profileCache?.status || 'pending') === 'approved'; }
 
     async function openAccountSettings() {
         const overlay = document.getElementById('accountSettingsOverlay');
