@@ -660,6 +660,7 @@
             </div>
             <div class="nav-item" id="navStory" onclick="switchTab('stories')">
                 <span class="icon">📖</span> Konten Cerita
+                <span class="badge" id="storyBadge" style="display:none">0</span>
             </div>
         </nav>
 
@@ -748,7 +749,13 @@
                         <h2>Moderasi Konten Cerita</h2>
                         <p>Tinjau dan kelola cerita yang dikirim pengguna.</p>
                     </div>
-                    <button class="filter-btn" onclick="loadStories()" style="padding:8px 18px;">↺ Refresh</button>
+                    <div class="filter-bar">
+                        <button class="filter-btn active" id="sfPending"   onclick="setStoriesFilter('pending')">⏳ Ajuan</button>
+                        <button class="filter-btn"         id="sfPublished" onclick="setStoriesFilter('published')">✅ Diterbitkan</button>
+                        <button class="filter-btn"         id="sfRejected"  onclick="setStoriesFilter('rejected')">✕ Ditolak</button>
+                        <button class="filter-btn"         id="sfAll"       onclick="setStoriesFilter('all')">Semua</button>
+                        <button class="filter-btn" onclick="loadStories()" style="padding:8px 18px;">↺ Refresh</button>
+                    </div>
                 </div>
                 <div class="card-list" id="storyList">
                     <div class="loading-state"><div class="loading-ring"></div><p>Memuat cerita...</p></div>
@@ -799,6 +806,31 @@
     </div>
 </div>
 
+<!-- Modal Approve Story -->
+<div class="modal-overlay" id="approveStoryModal">
+    <div class="modal">
+        <h3>Setujui Cerita</h3>
+        <p>Cerita ini akan diterbitkan dan dapat dibaca oleh pengguna lain.</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('approveStoryModal')">Batal</button>
+            <button class="btn-confirm green" id="confirmApproveStoryBtn">✓ Terbitkan</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Reject Story -->
+<div class="modal-overlay" id="rejectStoryModal">
+    <div class="modal">
+        <h3>Tolak Cerita</h3>
+        <p>Cerita ini akan ditolak dan tidak diterbitkan. Berikan alasan (opsional).</p>
+        <textarea class="reject-reason" id="rejectStoryReason" placeholder="Misal: Konten tidak sesuai kebijakan, dll."></textarea>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal('rejectStoryModal')">Batal</button>
+            <button class="btn-confirm" id="confirmRejectStoryBtn">✕ Tolak Cerita</button>
+        </div>
+    </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════
 // KONFIGURASI
@@ -817,8 +849,10 @@ const ADMIN_CREDENTIALS = [
 // STATE
 // ════════════════════════════════════════════
 let allRegistrations = [];
-let currentFilter   = 'all';
-let pendingAction   = null; // { type, id, username }
+let allStories       = [];
+let currentFilter    = 'all';
+let storiesFilter    = 'pending';
+let pendingAction    = null; // { type, id, username }
 
 // ════════════════════════════════════════════
 // HELPERS
@@ -956,7 +990,7 @@ async function loadStats() {
     try {
         const [regRes, storiesRes] = await Promise.all([
             fetch(`${SUPABASE_URL}/rest/v1/pending_registrations?select=status`, { headers: sbHeaders() }),
-            fetch(`${SUPABASE_URL}/rest/v1/stories?select=id`, { headers: sbHeaders() })
+            fetch(`${SUPABASE_URL}/rest/v1/stories?select=id,status`, { headers: sbHeaders() })
         ]);
 
         const regs    = await regRes.json();
@@ -964,16 +998,27 @@ async function loadStats() {
 
         const pending  = Array.isArray(regs) ? regs.filter(r => r.status === 'pending').length  : 0;
         const approved = Array.isArray(regs) ? regs.filter(r => r.status === 'approved').length : 0;
+        const storyPending = Array.isArray(stories) ? stories.filter(s => (s.status || 'pending') === 'pending').length : 0;
 
         document.getElementById('statPending').textContent  = pending;
         document.getElementById('statApproved').textContent = approved;
         document.getElementById('statStories').textContent  = Array.isArray(stories) ? stories.length : 0;
 
-        // Badge sidebar
+        // Badge sidebar registrasi
         if (pending > 0) {
             const badge = document.getElementById('pendingBadge');
             badge.textContent = pending;
             badge.style.display = 'inline-block';
+        }
+
+        // Badge sidebar cerita
+        if (storyPending > 0) {
+            const badge = document.getElementById('storyBadge');
+            badge.textContent = storyPending;
+            badge.style.display = 'inline-block';
+        } else {
+            const badge = document.getElementById('storyBadge');
+            if (badge) badge.style.display = 'none';
         }
     } catch(e) { console.error('Stats error:', e); }
 }
@@ -1123,55 +1168,152 @@ async function executeReject() {
 // ════════════════════════════════════════════
 // STORIES
 // ════════════════════════════════════════════
+function setStoriesFilter(f) {
+    storiesFilter = f;
+    ['Pending','Published','Rejected','All'].forEach(n => {
+        const el = document.getElementById('sf' + n);
+        if (el) el.classList.remove('active');
+    });
+    const key = f.charAt(0).toUpperCase() + f.slice(1);
+    const btn = document.getElementById('sf' + key);
+    if (btn) btn.classList.add('active');
+    renderStories();
+}
+
 async function loadStories() {
     document.getElementById('storyList').innerHTML =
         '<div class="loading-state"><div class="loading-ring"></div><p>Memuat cerita...</p></div>';
 
     try {
         const res  = await fetch(
-            `${SUPABASE_URL}/rest/v1/stories?select=*&order=created_at.desc&limit=50`,
+            `${SUPABASE_URL}/rest/v1/stories?select=*&order=created_at.desc&limit=100`,
             { headers: sbHeaders() }
         );
         const data = await res.json();
-
-        if (!Array.isArray(data) || data.length === 0) {
-            document.getElementById('storyList').innerHTML =
-                '<div class="empty-state"><div class="big">📚</div><p>Belum ada cerita yang diunggah.</p></div>';
-            return;
-        }
-
-        document.getElementById('storyList').innerHTML = data.map(s => {
-            const excerpt = s.content
-                ? s.content.replace(/<[^>]*>/g, '').substring(0, 180) + '…'
-                : s.description || 'Tidak ada deskripsi.';
-
-            return `
-            <div class="story-card" id="story-${s.id}">
-                <div class="story-top">
-                    <div style="flex:1">
-                        <div class="story-title">${escHtml(s.title || 'Tanpa Judul')}</div>
-                        <div class="story-author">oleh ${escHtml(s.author || s.username || 'Anonim')}</div>
-                        <div class="story-excerpt">${escHtml(excerpt)}</div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
-                        <button class="action-btn delete" onclick="triggerDeleteStory('${s.id}','${escHtml(s.title||'cerita ini')}')">
-                            🗑 Hapus
-                        </button>
-                    </div>
-                </div>
-                <div class="story-footer">
-                    <div class="story-meta-tags">
-                        ${s.genre  ? `<span class="story-tag">${escHtml(s.genre)}</span>`  : ''}
-                        ${s.status ? `<span class="story-tag">${escHtml(s.status)}</span>` : ''}
-                    </div>
-                    <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${timeAgo(s.created_at)}</span>
-                </div>
-            </div>`;
-        }).join('');
-
+        allStories = Array.isArray(data) ? data : [];
+        renderStories();
     } catch(e) {
         document.getElementById('storyList').innerHTML =
             '<div class="empty-state"><div class="big">⚠️</div><p>Gagal memuat cerita.</p></div>';
+    }
+}
+
+function renderStories() {
+    const filtered = storiesFilter === 'all'
+        ? allStories
+        : allStories.filter(s => (s.status || 'pending') === storiesFilter);
+
+    const list = document.getElementById('storyList');
+
+    if (filtered.length === 0) {
+        const labels = { pending: 'ajuan cerita baru', published: 'cerita yang diterbitkan', rejected: 'cerita yang ditolak', all: 'cerita' };
+        list.innerHTML = `<div class="empty-state">
+            <div class="big">📭</div>
+            <p>Tidak ada ${labels[storiesFilter] || 'data'} saat ini.</p>
+        </div>`;
+        return;
+    }
+
+    list.innerHTML = filtered.map(s => {
+        const excerpt = s.content
+            ? s.content.replace(/<[^>]*>/g, '').substring(0, 180) + '…'
+            : s.description || 'Tidak ada deskripsi.';
+
+        const storyStatus = s.status || 'pending';
+        const isPending   = storyStatus === 'pending';
+
+        const actions = isPending
+            ? `<button class="action-btn approve" onclick="triggerApproveStory('${s.id}','${escHtml(s.title||'cerita ini')}')">✓ Setujui</button>
+               <button class="action-btn reject"  onclick="triggerRejectStory('${s.id}','${escHtml(s.title||'cerita ini')}')">✕ Tolak</button>
+               <button class="action-btn delete"  onclick="triggerDeleteStory('${s.id}','${escHtml(s.title||'cerita ini')}')">🗑</button>`
+            : `<span class="status-badge ${storyStatus === 'published' ? 'approved' : storyStatus}">${storyStatus === 'published' ? 'Diterbitkan' : storyStatus === 'rejected' ? 'Ditolak' : storyStatus}</span>
+               <button class="action-btn delete" onclick="triggerDeleteStory('${s.id}','${escHtml(s.title||'cerita ini')}')">🗑 Hapus</button>`;
+
+        return `
+        <div class="story-card" id="story-${s.id}">
+            <div class="story-top">
+                <div style="flex:1">
+                    <div class="story-title">${escHtml(s.title || 'Tanpa Judul')}</div>
+                    <div class="story-author">oleh ${escHtml(s.author || s.username || 'Anonim')}
+                        ${isPending ? '<span class="status-badge pending" style="margin-left:8px;">Menunggu Review</span>' : ''}
+                    </div>
+                    <div class="story-excerpt">${escHtml(excerpt)}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
+                    ${actions}
+                </div>
+            </div>
+            <div class="story-footer">
+                <div class="story-meta-tags">
+                    ${s.genre  ? `<span class="story-tag">${escHtml(s.genre)}</span>`  : ''}
+                    ${s.status ? `<span class="story-tag">${escHtml(s.status)}</span>` : ''}
+                </div>
+                <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">${timeAgo(s.created_at)}</span>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Approve story flow
+function triggerApproveStory(id, title) {
+    pendingAction = { type: 'approve-story', id, title };
+    openModal('approveStoryModal');
+    document.getElementById('confirmApproveStoryBtn').onclick = () => executeApproveStory();
+}
+
+async function executeApproveStory() {
+    const { id, title } = pendingAction;
+    closeModal('approveStoryModal');
+
+    try {
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/stories?id=eq.${id}`,
+            {
+                method: 'PATCH',
+                headers: sbHeaders(),
+                body: JSON.stringify({ status: 'published', published_at: new Date().toISOString() })
+            }
+        );
+        if (!res.ok) throw new Error();
+        showToast(`✅ Cerita "${title}" berhasil diterbitkan!`);
+        await loadStories();
+        loadStats();
+    } catch {
+        showToast('Gagal menyetujui cerita. Coba lagi.', 'error');
+    }
+}
+
+// Reject story flow
+function triggerRejectStory(id, title) {
+    pendingAction = { type: 'reject-story', id, title };
+    document.getElementById('rejectStoryReason').value = '';
+    openModal('rejectStoryModal');
+    document.getElementById('confirmRejectStoryBtn').onclick = () => executeRejectStory();
+}
+
+async function executeRejectStory() {
+    const { id, title } = pendingAction;
+    const reason = document.getElementById('rejectStoryReason').value.trim();
+    closeModal('rejectStoryModal');
+
+    try {
+        const body = { status: 'rejected', rejected_at: new Date().toISOString() };
+        if (reason) body.reject_reason = reason;
+
+        const res = await fetch(
+            `${SUPABASE_URL}/rest/v1/stories?id=eq.${id}`,
+            {
+                method: 'PATCH',
+                headers: sbHeaders(),
+                body: JSON.stringify(body)
+            }
+        );
+        if (!res.ok) throw new Error();
+        showToast(`❌ Cerita "${title}" ditolak.`);
+        await loadStories();
+        loadStats();
+    } catch {
+        showToast('Gagal menolak cerita. Coba lagi.', 'error');
     }
 }
 
