@@ -962,6 +962,7 @@ function initAdmin() {
     document.getElementById('topbarMeta').textContent = `Selamat datang, ${name}`;
     loadStats();
     loadRegistrations();
+    loadStories(); // FIX: muat cerita saat init agar badge & list sinkron
 }
 
 // ════════════════════════════════════════════
@@ -1005,10 +1006,14 @@ async function loadStats() {
         document.getElementById('statStories').textContent  = Array.isArray(stories) ? stories.length : 0;
 
         // Badge sidebar registrasi
-        if (pending > 0) {
-            const badge = document.getElementById('pendingBadge');
-            badge.textContent = pending;
-            badge.style.display = 'inline-block';
+        const regBadge = document.getElementById('pendingBadge');
+        if (regBadge) {
+            if (pending > 0) {
+                regBadge.textContent = pending;
+                regBadge.style.display = 'inline-block';
+            } else {
+                regBadge.style.display = 'none';
+            }
         }
 
         // Badge sidebar cerita
